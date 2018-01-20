@@ -3,17 +3,11 @@ function cart(obj){
 	if (obj == undefined){
 		obj = {};
  	}
- 	if (obj.name != undefined){ this.name = obj.name; }
- 	else {this.name = 'Карта треф';}
-	// Жизни
- 	if (obj.live != undefined){this.live = obj.live;}
-	else {this.live = 1;}
-	// Сила атаки
- 	if (obj.strong != undefined){this.strong = obj.strong;}
-	else{this.strong = 1;}
- 	// Защита 
- 	if (obj.defense != undefined){this.defense = obj.defense;}
-	else{this.defense = 0;}
+	this.name = (obj.name!=undefined) ? obj.name : "Карта";
+	this.live = (obj.live!=undefined) ? obj.live : 1; // Жизни
+	this.strong = (obj.strong!=undefined) ? obj.strong : 1; // Сила атаки
+	this.defense = (obj.defense!=undefined) ? obj.defense : 0; // Оборона/Защита
+
 };
 
 //Колода карт
@@ -50,7 +44,7 @@ function koloda(){
  	 this.getCart = function(){
  	 	 return this.cart;
  	 }
- 	if (cart != undefined && cart != false){
+ 	 if (cart != undefined && cart != false){
  	 	this.setCart(cart);
  	 }
  };
@@ -88,6 +82,13 @@ function koloda(){
 
  	this.spells_col = (obj.spells_col!=undefined) ? obj.spells_col : 3;
  	this.items_col = (obj.items_col!=undefined) ? obj.items_col : 3;
+ 	
+ 	this.init = function(){
+ 		this.arena = new blockCells(this.arena_col,this.row);
+ 		this.spells = new blockCells(this.spells_col);
+ 		this.items = new blockCells(this.items_col);
+ 	}
+ 	return this.init();
  }
 
  
