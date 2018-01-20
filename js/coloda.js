@@ -7,7 +7,12 @@ function cart(obj){
 	this.live = (obj.live!=undefined) ? obj.live : 1; // Жизни
 	this.strong = (obj.strong!=undefined) ? obj.strong : 1; // Сила атаки
 	this.defense = (obj.defense!=undefined) ? obj.defense : 0; // Оборона/Защита
-
+	this.getHtml = function(){
+ 		var html = '';
+ 		html +='<div class="cart">';
+ 		html += '</div>';
+ 		return html;
+ 	};
 };
 
 //Колода карт
@@ -47,6 +52,12 @@ function koloda(){
  	 if (cart != undefined && cart != false){
  	 	this.setCart(cart);
  	 }
+ 	 this.getHtml = function(){
+ 		var html = '';
+ 		html +='<div class="cell-cart">';
+ 		 	+'</div>';
+ 		return html;
+ 	};
  };
 
  // Группа ячейка
@@ -68,6 +79,12 @@ function koloda(){
 		 }
 		 return true;
 	 }
+ 	this.getHtml = function(){
+ 		var html = '';
+ 		html +='<div class="block-cells">';
+ 		html += '</div>';
+ 		return html;
+ 	};
 	 return this.init();
  }
  
@@ -88,6 +105,15 @@ function koloda(){
  		this.spells = new blockCells(this.spells_col);
  		this.items = new blockCells(this.items_col);
  	}
+ 	this.getHtml = function(){
+ 		var html = '';
+ 		html +='<div class="half-table">'
+ 			+ '<div class="half-table__items">' + this.items.getHtml() + '</div>'
+ 			+ '<div class="half-table__spells">' + this.spells.getHtml() + '</div>'
+ 			+ '<div class="half-table__arena">' + this.arena.getHtml() + '</div>'
+ 			+ '</div>';
+ 		return html;
+ 	};
  	return this.init();
  }
 

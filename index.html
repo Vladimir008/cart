@@ -5,9 +5,18 @@
 	<script src='js/coloda.js'></script>
 </head>
 <body>
+
 <script>
 	var halfTable = new halfTable({name:"Моя половина"});
 	console.log(halfTable);
+	
+	// Тест
+	var div = document.createElement('div');
+	div.className = "game";
+	div.innerHTML = halfTable.getHtml();
+	
+	var  parentElem = document.body;
+	parentElem.appendChild(div);
 </script>		
 </body>
 </html>
