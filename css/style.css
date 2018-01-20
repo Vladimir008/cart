@@ -1,0 +1,38 @@
+/*-------------Блок ячеек - НАЧАЛО ----------*/
+.half-table__left,
+.half-table__center,
+.half-table__right{
+	display: table-cell;
+}
+.half-table__left{
+	padding-right: 50px;
+}
+
+.half-table__items{
+	padding-bottom: 50px;	
+}
+
+.block-cells {
+    display: table;
+}
+.block-cells__row {
+    display: table-row;
+}
+.cell-cart{
+	display: table-cell;
+}
+/*-------------Блок ячеек - КОНЕЦ ----------*/
+
+/*-------------Блок карты - НАЧАЛО ----------*/
+.cart{
+	--width:70px;
+	width:var(--width);
+	height:calc(var(--width)*1.5555);
+	display: inline-block;
+	border:1px solid black;
+	margin:5px;
+	border-radius: 5px;
+}
+
+/*-------------Блок карты - КОНЕЦ ----------*/
+

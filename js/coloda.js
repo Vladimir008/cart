@@ -1,4 +1,4 @@
-// сarta
+// Карта
 function cart(obj){
 	if (obj == undefined){
 		obj = {};
@@ -39,28 +39,33 @@ function koloda(){
 }
 
 //ячейка области
- function cellCart(col,row,cart){
- 	 this.row = col;
- 	 this.col = row;
+ function cellCart(col,row,cart_obj){
+ 	 this.row = row;
+ 	 this.col = col;
  	 this.cart = false;
- 	 this.setCart = function(cart){
- 	 	 this.cart = cart;
+ 	 this.cart = new cart({name:'Дама',strong:12}); // Временно
+ 	 this.setCart = function(cart_obj){
+ 	 	 this.cart = cart_obj;
  	 }
  	 this.getCart = function(){
  	 	 return this.cart;
  	 }
- 	 if (cart != undefined && cart != false){
- 	 	this.setCart(cart);
+ 	 if (cart_obj != undefined && cart_obj != false){
+ 	 	this.setCart(cart_obj);
  	 }
  	 this.getHtml = function(){
  		var html = '';
- 		html +='<div class="cell-cart">';
- 		 	+'</div>';
+ 		html +='<div class="cell-cart" data-row="'+this.row+'"'
+ 				+' data-col="'+this.col+'">';
+ 		if (cart!=undefined && cart!=false){
+ 			html += this.cart.getHtml();
+ 		}
+ 		html +='</div>';
  		return html;
  	};
  };
 
- // Группа ячейка
+ // --------Группа ячеек
  function blockCells(col,row){
 	 if (col == undefined){
 		 col = 1;
@@ -72,8 +77,8 @@ function koloda(){
 	 this.row = row;
 	 this.cells = [];
 	 this.init = function(){
-		 for (var i = 1; i<=col; i++){
-			 for (var j = 1; j<=row; j++){
+		 for (var j = 1; j<=row; j++){
+			 for (var i = 1; i<=col; i++){
 				 this.cells.push(new cellCart(i,j));
 			 }
 		 }
@@ -81,8 +86,19 @@ function koloda(){
 	 }
  	this.getHtml = function(){
  		var html = '';
- 		html +='<div class="block-cells">';
- 		html += '</div>';
+ 		html +='<div class="block-cells">'
+ 				+'<div class="block-cells__row">';
+ 		var selectRow = 1;
+ 		this.cells.forEach(function(item, i) {
+ 			if (item.row!=selectRow){
+ 				html += '</div>' 
+ 						+ '<div class="block-cells__row">';
+ 				selectRow = item.row; 
+ 			}
+ 			html += item.getHtml();
+ 		});
+ 		html += '</div>' 
+ 			+'</div>'; // block-cells
  		return html;
  	};
 	 return this.init();
@@ -94,24 +110,30 @@ function koloda(){
 		obj = {};
  	}
  	this.name = (obj.name!=undefined) ? obj.name : "";
- 	this.arena_row = (obj.arena_row!=undefined) ? obj.arena_row : 2;
- 	this.arena_col = (obj.arena_col!=undefined) ? obj.arena_col : 3;
+ 	this.arena_row = (obj.arena_row!=undefined) ? obj.arena_row : 3;
+ 	this.arena_col = (obj.arena_col!=undefined) ? obj.arena_col : 4;
 
  	this.spells_col = (obj.spells_col!=undefined) ? obj.spells_col : 3;
  	this.items_col = (obj.items_col!=undefined) ? obj.items_col : 3;
  	
  	this.init = function(){
- 		this.arena = new blockCells(this.arena_col,this.row);
+ 		this.arena = new blockCells(this.arena_col,this.arena_row);
  		this.spells = new blockCells(this.spells_col);
  		this.items = new blockCells(this.items_col);
  	}
  	this.getHtml = function(){
  		var html = '';
  		html +='<div class="half-table">'
- 			+ '<div class="half-table__items">' + this.items.getHtml() + '</div>'
- 			+ '<div class="half-table__spells">' + this.spells.getHtml() + '</div>'
- 			+ '<div class="half-table__arena">' + this.arena.getHtml() + '</div>'
- 			+ '</div>';
+	 			+ '<div class="half-table__left">'
+ 					+ '<div class="half-table__items">' + this.items.getHtml() + '</div>'
+ 					+ '<div class="half-table__spells">' + this.spells.getHtml() + '</div>'
+	 			+ '</div>'
+	 			+ '<div class="half-table__center">'
+	 				+ '<div class="half-table__arena">' + this.arena.getHtml() + '</div>'
+	 			+ '</div>'
+	 			+ '<div class="half-table__right">'
+	 			+ '</div>'
+	 		+ '</div>';
  		return html;
  	};
  	return this.init();
