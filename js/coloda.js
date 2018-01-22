@@ -7,12 +7,17 @@ function cart(obj){
 	this.live = (obj.live!=undefined) ? obj.live : 1; // Жизни
 	this.strong = (obj.strong!=undefined) ? obj.strong : 1; // Сила атаки
 	this.defense = (obj.defense!=undefined) ? obj.defense : 0; // Оборона/Защита
+	this.node = false;
 	this.getHtml = function(){
  		var html = '';
  		html +='<div class="cart">';
  		html += '</div>';
  		return html;
  	};
+ 	this.getInnerHtml = function(){
+		 var innerHtml = '';
+		 return innerHtml;
+ 	}
 };
 
 //Колода карт
@@ -109,7 +114,7 @@ function koloda(){
 	if (obj == undefined){
 		obj = {};
  	}
- 	this.name = (obj.name!=undefined) ? obj.name : "";
+ 	this.name = (obj.inverse!=undefined) ? obj.inverse : false;
  	this.arena_row = (obj.arena_row!=undefined) ? obj.arena_row : 3;
  	this.arena_col = (obj.arena_col!=undefined) ? obj.arena_col : 4;
 
@@ -137,6 +142,21 @@ function koloda(){
  		return html;
  	};
  	return this.init();
+ }
+ function Table(obj){
+	 	if (obj == undefined){
+			obj = {};
+	 	}
+	 	this.arena_row = obj.arena_row = (obj.arena_row!=undefined) ? obj.arena_row : 3;
+	 	this.arena_col = obj.arena_col = (obj.arena_col!=undefined) ? obj.arena_col : 4;
+	 	this.spells_col = obj.spells_col = (obj.spells_col!=undefined) ? obj.spells_col : 3;
+	 	this.items_col = obj.items_col = (obj.items_col!=undefined) ? obj.items_col : 3;
+	 	this.init = function(){
+	 		var settings = {
+	 			arena_row:this.arena_row,
+	 		}
+	 	}
+	 	return this.init();
  }
 
  
