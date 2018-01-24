@@ -8,6 +8,7 @@ function cart(obj){
 	this.strong = (obj.strong!=undefined) ? obj.strong : 1; // Сила атаки
 	this.defense = (obj.defense!=undefined) ? obj.defense : 0; // Оборона/Защита
 	this.node = false;
+	// Нужно бы убрать
 	this.getHtml = function(){
  		var html = '';
  		html +='<div class="cart">';
@@ -17,57 +18,90 @@ function cart(obj){
  	this.getInnerHtml = function(){
 		 var innerHtml = '';
 		 return innerHtml;
- 	}
+	 }
+	 this.setNode = function(){
+		var cartNode = document.createElement('div');
+		cartNode.className = "cart";
+		cartNode.innerHTML = this.getInnerHtml();
+		this.node = cartNode;
+		return this.node;
+	 }
+	 this.getNode = function(){
+		 if (!this.node){
+			return this.setNode();
+		 }
+		 return this.node;
+	 }
 };
 
 //Колода карт
 function koloda(){
 
-	 this.carts = [
-	  new cart({name:'Карта1'}),
-	  new cart({live:3}),
-	  new cart({name:'Дама',strong:12}),
-	  new cart({name:'Король',live:12}),
-	  new cart({name:'Дама2',strong:12}),
-	  new cart({name:'Дама3',strong:12}),
-	  new cart({name:'Дама4',strong:12}),
-	  new cart({name:'Дама5',strong:12}),
-	  new cart({name:'Дама6',strong:12}),
-	  new cart({name:'Дама7',strong:12}),
-	 ];
+	this.init = function(){
+		this.carts = [
+			new cart({name:'Карта1'}),
+			new cart({live:3}),
+			new cart({name:'Дама',strong:12}),
+			new cart({name:'Король',live:12}),
+			new cart({name:'Дама2',strong:12}),
+			new cart({name:'Дама3',strong:12}),
+			new cart({name:'Дама4',strong:12}),
+			new cart({name:'Дама5',strong:12}),
+			new cart({name:'Дама6',strong:12}),
+			new cart({name:'Дама7',strong:12}),
+		   ];
+	} 
+	
 	 this.getCart = function (){
 	 	 var carts = this.carts;
 	 	 var rand = Math.floor(Math.random() * carts.length);
-    return carts.splice(rand,1)[0];
-	 }
-	 this.n = 3;
+    	return carts.splice(rand,1)[0];
+	}
+	return this.init();
+
 }
 
 //ячейка области
  function cellCart(col,row,cart_obj){
- 	 this.row = row;
- 	 this.col = col;
- 	 this.cart = false;
- 	 this.cart = new cart({name:'Дама',strong:12}); // Временно
- 	 this.setCart = function(cart_obj){
- 	 	 this.cart = cart_obj;
- 	 }
- 	 this.getCart = function(){
- 	 	 return this.cart;
- 	 }
- 	 if (cart_obj != undefined && cart_obj != false){
- 	 	this.setCart(cart_obj);
- 	 }
- 	 this.getHtml = function(){
- 		var html = '';
- 		html +='<div class="cell-cart" data-row="'+this.row+'"'
- 				+' data-col="'+this.col+'">';
- 		if (cart!=undefined && cart!=false){
- 			html += this.cart.getHtml();
- 		}
- 		html +='</div>';
- 		return html;
- 	};
+ 	this.row = row;
+ 	this.col = col;
+ 	this.cart = false;
+	this.cart = new cart({name:'Дама',strong:12}); // Временно
+	this.node = false;
+	this.setCart = function(cart_obj){
+		this.cart = cart_obj;
+	}
+	this.getCart = function(){
+		return this.cart;
+	}
+	if (cart_obj != undefined && cart_obj != false){
+		this.setCart(cart_obj);
+	}
+	this.getHtml = function(){
+		var html = '';
+		html +='<div class="cell-cart" data-row="'+this.row+'"'
+				+' data-col="'+this.col+'">';
+		if (this.cart!=undefined && this.cart!=false){
+			html += this.cart.getHtml();
+		}
+		html +='</div>';
+		return html;
+	};
+	this.setNode = function(){
+	   var cartCellNode = document.createElement('div');
+	   cartCellNode.className = "cell-cart";
+	   if (this.cart!=undefined && this.cart!=false){
+			cartCellNode.appendChild(this.cart.getNode());
+	   }
+	   this.node = cartCellNode;
+	   return this.node;
+	}
+	this.getNode = function(){
+		if (!this.node){
+		   return this.setNode();
+		}
+		return this.node;
+	}
  };
 
  // --------Группа ячеек
@@ -81,6 +115,7 @@ function koloda(){
 	 this.col = col;
 	 this.row = row;
 	 this.cells = [];
+	 this.node = false;
 	 this.init = function(){
 		 for (var j = 1; j<=row; j++){
 			 for (var i = 1; i<=col; i++){
@@ -89,7 +124,7 @@ function koloda(){
 		 }
 		 return true;
 	 }
- 	this.getHtml = function(){
+ 	/*this.getHtml = function(){
  		var html = '';
  		html +='<div class="block-cells">'
  				+'<div class="block-cells__row">';
@@ -105,7 +140,32 @@ function koloda(){
  		html += '</div>' 
  			+'</div>'; // block-cells
  		return html;
- 	};
+	 };*/
+	 this.setNode = function(){
+		var blockCellsNode = document.createElement('div');
+		blockCellsNode.className = "block-cells";
+		var blockCellsRowNode = document.createElement('div');
+		blockCellsRowNode.className = 'block-cells__row';
+		var selectRow = 1;
+ 		this.cells.forEach(function(item, i){
+			if (item.row!=selectRow){
+				blockCellsNode.appendChild(blockCellsRowNode.cloneNode(true));
+				blockCellsRowNode = document.createElement('div');
+				blockCellsRowNode.className = 'block-cells__row';
+				selectRow = item.row; 
+			}
+			blockCellsRowNode.appendChild(item.getNode());
+		});
+		blockCellsNode.appendChild(blockCellsRowNode);
+		this.node = blockCellsNode;
+		return this.node;
+	 }
+	 this.getNode = function(){
+		 if (!this.node){
+			return this.setNode();
+		 }
+		 return this.node;
+	 }
 	 return this.init();
  }
  
@@ -120,13 +180,14 @@ function koloda(){
 
  	this.spells_col = (obj.spells_col!=undefined) ? obj.spells_col : 3;
  	this.items_col = (obj.items_col!=undefined) ? obj.items_col : 3;
- 	
- 	this.init = function(){
+ 	this.node = false;
+	 
+	 this.init = function(){
  		this.arena = new blockCells(this.arena_col,this.arena_row);
  		this.spells = new blockCells(this.spells_col);
  		this.items = new blockCells(this.items_col);
  	}
- 	this.getHtml = function(){
+ 	/*this.getHtml = function(){
  		var html = '';
  		html +='<div class="half-table">'
 	 			+ '<div class="half-table__left">'
@@ -140,7 +201,32 @@ function koloda(){
 	 			+ '</div>'
 	 		+ '</div>';
  		return html;
- 	};
+	 };*/
+	 this.setNode = function(){
+		var halfTableNode = document.createElement('div');
+		halfTableNode.className = "block-cells";
+		halfTableNode.innerHTML =  '<div class="half-table__left">'
+			+ '<div class="half-table__items"></div>'
+			+ '<div class="half-table__spells"></div>'
+		+ '</div>'
+		+ '<div class="half-table__center">'
+			+ '<div class="half-table__arena"></div>'
+		+ '</div>'
+		+ '<div class="half-table__right">'
+		+ '</div>';
+		console.log(halfTableNode.querySelector(".half-table__items"));
+		halfTableNode.querySelector(".half-table__items").appendChild(this.items.getNode());
+		halfTableNode.querySelector(".half-table__spells").appendChild(this.spells.getNode());
+		halfTableNode.querySelector(".half-table__arena").appendChild(this.arena.getNode());
+		this.node = halfTableNode;
+		return this.node;
+	 }
+	 this.getNode = function(){
+		 if (!this.node){
+			return this.setNode();
+		 }
+		 return this.node;
+	 }
  	return this.init();
  }
  function Table(obj){
