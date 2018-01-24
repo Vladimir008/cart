@@ -8,11 +8,17 @@
 <body>
 
 <script>
-	var halfTable = new halfTable({name:"Моя половина"});
-	console.log(halfTable);
+	var halfTable = new halfTable({name:"Моя половина"});	
+	document.body.appendChild(halfTable.getNode()); 
 	
-	document.body.appendChild(halfTable.getNode());   
+	var testCart  = new cart({name:'Дама',strong:12});
+	console.log(testCart);
 	
+	testCart.live(6);
+	console.log(testCart.live());
+
+	testCart.live(50);
+	console.log(testCart.live());
 </script>		
 </body>
 </html>

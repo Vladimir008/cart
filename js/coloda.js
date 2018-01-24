@@ -4,18 +4,40 @@ function cart(obj){
 		obj = {};
  	}
 	this.name = (obj.name!=undefined) ? obj.name : "Карта";
-	this.live = (obj.live!=undefined) ? obj.live : 1; // Жизни
-	this.strong = (obj.strong!=undefined) ? obj.strong : 1; // Сила атаки
-	this.defense = (obj.defense!=undefined) ? obj.defense : 0; // Оборона/Защита
 	this.node = false;
-	// Нужно бы убрать
-	this.getHtml = function(){
- 		var html = '';
- 		html +='<div class="cart">';
- 		html += '</div>';
- 		return html;
- 	};
- 	this.getInnerHtml = function(){
+	
+	/* Основные параметры для механики игры */
+	var max_live;
+	var live; // Жизни
+	var strong; // Сила атаки
+	var defense; // Оборона/Защита
+	this.max_live = function(value){
+		if (!arguments.length) return max_live;
+		if (value < 0) { value = 0} // Макс жизнь не может быть меньше нуля
+		max_live = value;
+	}
+	this.live = function(value){
+		if (!arguments.length) return live;
+		if (value > max_live) {value = max_live;}
+		live = value;
+	}
+	this.strong = function(value){
+		if (!arguments.length) return strong;
+		if (value < 1) {value = 1} // Макс жизнь не может быть меньше нуля
+		strong = value;
+	}
+	this.defense = function(value){	
+		if (!arguments.length) return defense;
+		if (value < 1) {value = 1} // Макс жизнь не может быть меньше нуля
+		defense = value;
+	}
+	this.max_live((obj.live!=undefined) ? obj.live : 10);
+	this.live((obj.live!=undefined) ? obj.live : 1);
+	this.strong((obj.strong!=undefined) ? obj.strong : 1);
+	this.defense((obj.defense!=undefined) ? obj.defense : 0);
+
+	/* Построение html */ 
+	this.getInnerHtml = function(){
 		 var innerHtml = '';
 		 return innerHtml;
 	 }
@@ -32,6 +54,7 @@ function cart(obj){
 		 }
 		 return this.node;
 	 }
+	 
 };
 
 //Колода карт
@@ -77,16 +100,7 @@ function koloda(){
 	if (cart_obj != undefined && cart_obj != false){
 		this.setCart(cart_obj);
 	}
-	this.getHtml = function(){
-		var html = '';
-		html +='<div class="cell-cart" data-row="'+this.row+'"'
-				+' data-col="'+this.col+'">';
-		if (this.cart!=undefined && this.cart!=false){
-			html += this.cart.getHtml();
-		}
-		html +='</div>';
-		return html;
-	};
+
 	this.setNode = function(){
 	   var cartCellNode = document.createElement('div');
 	   cartCellNode.className = "cell-cart";
@@ -124,23 +138,7 @@ function koloda(){
 		 }
 		 return true;
 	 }
- 	/*this.getHtml = function(){
- 		var html = '';
- 		html +='<div class="block-cells">'
- 				+'<div class="block-cells__row">';
- 		var selectRow = 1;
- 		this.cells.forEach(function(item, i) {
- 			if (item.row!=selectRow){
- 				html += '</div>' 
- 						+ '<div class="block-cells__row">';
- 				selectRow = item.row; 
- 			}
- 			html += item.getHtml();
- 		});
- 		html += '</div>' 
- 			+'</div>'; // block-cells
- 		return html;
-	 };*/
+
 	 this.setNode = function(){
 		var blockCellsNode = document.createElement('div');
 		blockCellsNode.className = "block-cells";
@@ -187,21 +185,7 @@ function koloda(){
  		this.spells = new blockCells(this.spells_col);
  		this.items = new blockCells(this.items_col);
  	}
- 	/*this.getHtml = function(){
- 		var html = '';
- 		html +='<div class="half-table">'
-	 			+ '<div class="half-table__left">'
- 					+ '<div class="half-table__items">' + this.items.getHtml() + '</div>'
- 					+ '<div class="half-table__spells">' + this.spells.getHtml() + '</div>'
-	 			+ '</div>'
-	 			+ '<div class="half-table__center">'
-	 				+ '<div class="half-table__arena">' + this.arena.getHtml() + '</div>'
-	 			+ '</div>'
-	 			+ '<div class="half-table__right">'
-	 			+ '</div>'
-	 		+ '</div>';
- 		return html;
-	 };*/
+
 	 this.setNode = function(){
 		var halfTableNode = document.createElement('div');
 		halfTableNode.className = "block-cells";
