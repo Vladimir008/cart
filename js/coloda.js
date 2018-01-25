@@ -104,6 +104,8 @@ function koloda(){
 	this.setNode = function(){
 	   var cartCellNode = document.createElement('div');
 	   cartCellNode.className = "cell-cart";
+	   cartCellNode.setAttribute("row",this.row);
+	   cartCellNode.setAttribute("col",this.col);
 	   if (this.cart!=undefined && this.cart!=false){
 			cartCellNode.appendChild(this.cart.getNode());
 	   }
@@ -119,23 +121,28 @@ function koloda(){
  };
 
  // --------Группа ячеек
- function blockCells(col,row){
-	 if (col == undefined){
-		 col = 1;
-	 }
-	 if (row == undefined){
-		 row = 1;
-	 }
-	 this.col = col;
-	 this.row = row;
+ function blockCells(col,row,inverse){
+	 
+	 this.col = (col!=undefined && col > 0) ? col : 1;
+	 this.row = (row!=undefined && row > 0) ? row : 1;
+	 this.inverse = (inverse!=undefined) ? inverse : false;
 	 this.cells = [];
 	 this.node = false;
 	 this.init = function(){
-		 for (var j = 1; j<=row; j++){
-			 for (var i = 1; i<=col; i++){
-				 this.cells.push(new cellCart(i,j));
-			 }
+		 if (this.inverse){ // Ячейки в обратном порядке 
+			for (var j = this.row; j>=1; j--){
+				for (var i = 1; i<=this.col; i++){
+					this.cells.push(new cellCart(i,j));
+				}
+			}
 		 }
+		 else{
+			for (var j = 1; j<=this.row; j++){
+				for (var i = 1; i<=this.col; i++){
+					this.cells.push(new cellCart(i,j));
+				}
+			}
+		}
 		 return true;
 	 }
 
@@ -144,7 +151,7 @@ function koloda(){
 		blockCellsNode.className = "block-cells";
 		var blockCellsRowNode = document.createElement('div');
 		blockCellsRowNode.className = 'block-cells__row';
-		var selectRow = 1;
+		var selectRow = (this.inverse) ? this.row : 1;
  		this.cells.forEach(function(item, i){
 			if (item.row!=selectRow){
 				blockCellsNode.appendChild(blockCellsRowNode.cloneNode(true));
@@ -166,7 +173,31 @@ function koloda(){
 	 }
 	 return this.init();
  }
- 
+
+ function playerProfile(obj){
+	if (obj == undefined){
+		obj = {};
+	}
+	this.node = false;
+	this.init = function(){
+		 this.name = "Игрок";
+		 this.cart = new cart({name:"Игрок"});
+	}
+	this.setNode = function(){
+		var playerNode = document.createElement('div');
+		playerNode.className = "player";
+		playerNode.innerHTML = '';
+		this.node = playerNode;
+		return this.node;
+	 }
+	 this.getNode = function(){
+		 if (!this.node){
+			return this.setNode();
+		 }
+		 return this.node;
+	 }
+	 return this.init();
+}	 
  // Игровое место (половина стола)
  function halfTable(obj){
 	if (obj == undefined){
@@ -179,29 +210,48 @@ function koloda(){
  	this.spells_col = (obj.spells_col!=undefined) ? obj.spells_col : 3;
  	this.items_col = (obj.items_col!=undefined) ? obj.items_col : 3;
  	this.node = false;
-	 
+	 this.inverse = (obj.inverse!=undefined) ? obj.inverse : false; // Перевернем или нет
 	 this.init = function(){
- 		this.arena = new blockCells(this.arena_col,this.arena_row);
+ 		this.arena = new blockCells(this.arena_col,this.arena_row,this.inverse);
  		this.spells = new blockCells(this.spells_col);
- 		this.items = new blockCells(this.items_col);
+		this.items = new blockCells(this.items_col);
+		this.player = new playerProfile();
  	}
 
 	 this.setNode = function(){
 		var halfTableNode = document.createElement('div');
-		halfTableNode.className = "block-cells";
-		halfTableNode.innerHTML =  '<div class="half-table__left">'
-			+ '<div class="half-table__items"></div>'
-			+ '<div class="half-table__spells"></div>'
-		+ '</div>'
-		+ '<div class="half-table__center">'
-			+ '<div class="half-table__arena"></div>'
-		+ '</div>'
-		+ '<div class="half-table__right">'
-		+ '</div>';
+		
+		if (this.inverse){
+			halfTableNode.className = "half-table half-table--inverse";
+			halfTableNode.innerHTML =  '<div class="half-table__left">'
+				+ '<div class="half-table__spells"></div>'
+				+ '<div class="half-table__items"></div>'
+			+ '</div>'
+			+ '<div class="half-table__center">'
+				+ '<div class="half-table__player-place"></div>'
+				+ '<div class="half-table__arena"></div>'
+			+ '</div>'
+			+ '<div class="half-table__right">'
+			+ '</div>';
+		}
+		else{
+			halfTableNode.className = "half-table";
+			halfTableNode.innerHTML =  '<div class="half-table__left">'
+				+ '<div class="half-table__items"></div>'
+				+ '<div class="half-table__spells"></div>'
+			+ '</div>'
+			+ '<div class="half-table__center">'
+				+ '<div class="half-table__arena"></div>'
+				+ '<div class="half-table__player-place"></div>'
+			+ '</div>'
+			+ '<div class="half-table__right">'
+			+ '</div>';
+		}
 		console.log(halfTableNode.querySelector(".half-table__items"));
 		halfTableNode.querySelector(".half-table__items").appendChild(this.items.getNode());
 		halfTableNode.querySelector(".half-table__spells").appendChild(this.spells.getNode());
 		halfTableNode.querySelector(".half-table__arena").appendChild(this.arena.getNode());
+		halfTableNode.querySelector(".half-table__player-place").appendChild(this.player.getNode());
 		this.node = halfTableNode;
 		return this.node;
 	 }
@@ -223,9 +273,30 @@ function koloda(){
 	 	this.items_col = obj.items_col = (obj.items_col!=undefined) ? obj.items_col : 3;
 	 	this.init = function(){
 	 		var settings = {
-	 			arena_row:this.arena_row,
-	 		}
-	 	}
+				 arena_row:this.arena_row,
+				 arena_col:this.arena_col,
+				 spells_col:this.spells_col,
+				 items_col:this.items_col,
+			 }
+			this.behindHalfTable = new halfTable(Object.assign({inverse:true}, settings));
+			this.frontHalfTable = new halfTable(settings);
+		 }
+		 this.setNode = function(){
+			var tableNode = document.createElement('div');
+			tableNode.className = "game-table";
+			tableNode.innerHTML =  '<div class="game-table__behind"></div>'
+				+ '<div class="game-table__front"></div>';
+			tableNode.querySelector(".game-table__behind").appendChild(this.behindHalfTable.getNode());
+			tableNode.querySelector(".game-table__front").appendChild(this.frontHalfTable.getNode());
+			this.node = tableNode;
+			return this.node;
+		 }
+		 this.getNode = function(){
+			if (!this.node){
+			   return this.setNode();
+			}
+			return this.node;
+		}
 	 	return this.init();
  }
 
