@@ -38,7 +38,8 @@ function cart(obj){
 
 	/* Построение html */ 
 	this.getInnerHtml = function(){
-		 var innerHtml = '';
+		 var innerHtml = '<div class="cart-front"></div>'
+		 				+ '<div class="cart-back"></div>';
 		 return innerHtml;
 	 }
 	 this.setNode = function(){
@@ -278,15 +279,15 @@ function koloda(){
 				 spells_col:this.spells_col,
 				 items_col:this.items_col,
 			 }
-			this.behindHalfTable = new halfTable(Object.assign({inverse:true}, settings));
+			this.backHalfTable = new halfTable(Object.assign({inverse:true}, settings));
 			this.frontHalfTable = new halfTable(settings);
 		 }
 		 this.setNode = function(){
 			var tableNode = document.createElement('div');
 			tableNode.className = "game-table";
-			tableNode.innerHTML =  '<div class="game-table__behind"></div>'
+			tableNode.innerHTML =  '<div class="game-table__back"></div>'
 				+ '<div class="game-table__front"></div>';
-			tableNode.querySelector(".game-table__behind").appendChild(this.behindHalfTable.getNode());
+			tableNode.querySelector(".game-table__back").appendChild(this.backHalfTable.getNode());
 			tableNode.querySelector(".game-table__front").appendChild(this.frontHalfTable.getNode());
 			this.node = tableNode;
 			return this.node;
