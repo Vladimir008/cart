@@ -1,3 +1,10 @@
+body{
+	background: #ccc;
+	--width-cart:50px;
+	--height-cart:calc(var(--width-cart)*1.5555);
+	
+}
+
 /*-------------Половина стола ----------*/
 .half-table__left,
 .half-table__center,
@@ -6,6 +13,7 @@
 }
 .half-table__left{
 	padding-right: 50px;
+	vertical-align: top;
 }
 
 .half-table__items{
@@ -13,26 +21,30 @@
 }
 
 .block-cells {
-    display: table;
+	display: table;
+	border-collapse: collapse;
 }
 .block-cells__row {
     display: table-row;
 }
 .cell-cart{
 	display: table-cell;
+	border:1px solid #00000033;
+	width:calc(var(--width-cart) + 10px);
+	height:calc(var(--height-cart) + 10px);
 }
 
 
 /*-------------Карта ----------*/
 .cart{
-	--width:50px;
-	width:var(--width);
-	height:calc(var(--width)*1.5555);
+	width:var(--width-cart);
+	height:var(--height-cart);
 	display: inline-block;
 	margin:5px;
 	border-radius: 5px;
 	position: relative;
 	perspective: 50rem;
+	font-size: 12px;
 }
 .cart-front,
 .cart-back {
@@ -53,14 +65,14 @@
 	transform: rotateY(180deg);
 
 }
-.cart:hover .cart-front{ transform: rotateY(180deg); }
-.cart:hover .cart-back { transform: rotateY(360deg); }
+//.cart:hover .cart-front{ transform: rotateY(180deg); }
+//.cart:hover .cart-back { transform: rotateY(360deg); }
 /*Поворот налево*/
 .cart--left-rotate	.cart-front{
 	transform-origin: left center 0;	
 }
 .cart--left-rotate	.cart-back{
-	left:calc(var(--width)*(-1));
+	left:calc(var(--width-cart)*(-1));
 	transform-origin: right center 0;
 	transform: rotateY(-180deg);
 }
@@ -71,7 +83,7 @@
 	transform-origin: right center 0;	
 }
 .cart--right-rotate	.cart-back{
-	right:calc(var(--width)*(-1));
+	right:calc(var(--width-cart)*(-1));
 	transform-origin: left center 0;
 	transform: rotateY(180deg);
 }

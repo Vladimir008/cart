@@ -1,0 +1,45 @@
+<html>
+<head>
+	<meta charset="UTF-8" />
+	<title>Document</title>
+	<script src='js/coloda.js'></script>
+	<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<script>
+    //  ---------Тесты карты  ---------
+    // Изменение характеристик
+    // Жизнь
+    var cart = new cart({max_live:4});
+    var life = cart.live(); // Должна быть равна 4;
+    
+    var life = cart.live(5);
+    var life = cart.live(); // Должна быть равна 4;
+    
+    var life = cart.live(2);
+    var life = cart.live(); // Должна быть равна 2;
+    
+    var life = cart.live("Ndfdf"); 
+    var life = cart.live(); // Должна быть равна 2;
+    
+    var life = cart.live(-1); 
+    var life = cart.live(); // Должна быть равна -1;
+    
+    var life = cart.live(3.6); 
+    var life = cart.live(); // Должна быть равна 3;
+    // Сила
+    var cart = new cart({strong:4});
+    var strong = cart.strong(); // Должна быть равна 4;
+
+    var strong = cart.strong("Ndfdf"); 
+    var strong = cart.strong(); // Должна быть равна 4;
+
+    var strong = cart.strong(0); 
+    var strong = cart.strong(); // Должна быть равна 1;
+
+    var strong = cart.strong(-1111111); 
+    var strong = cart.strong(); // Должна быть равна 1;
+</script>
+</body>
+</html>

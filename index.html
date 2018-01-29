@@ -8,22 +8,17 @@
 <body>
 
 <script>
-	var Table = new Table({name:"Моя половина"});	
+	//var BC = new blockCells(2,2,true);
+	var Table = new Table({name:"Моя половина",arena_col:2,arena_row:2,items_col:1,spells_col:1});	
 	console.log(Table);
-	document.body.appendChild(Table.getNode()); 
-	
-	//var testCart  = new cart({name:'Дама',strong:12});
-	//console.log(testCart);
-	
-	//testCart.live(6);
-	//console.log(testCart.live());
+	document.body.appendChild(Table.getNode());
+	Table.backHalfTable.fillFirstRow();
+	Table.frontHalfTable.fillFirstRow();
 
-//	testCart.live(50);
-//	console.log(testCart.live());
+
 </script>
-<style>
-	
-</style>
+
+<!--
   <div class="cart cart--left-rotate" style="margin-left:200px">
 	<div class="cart-front"><span><</span></div>
 	<div class="cart-back"><span>></span></div>
@@ -33,6 +28,6 @@
 	<div class="cart-front"><span>Front</span></div>
 	<div class="cart-back"><span>Back</span></div>
   </div>
-
+-->
 </body>
 </html>
