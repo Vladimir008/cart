@@ -3,17 +3,19 @@
 	<meta charset="UTF-8" />
 	<title>Document</title>
 	<script src='js/coloda.js'></script>
+	<script src='js/battle_scene.js'></script>
 	<link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
+<div id="scene">
 
+</div>
 <script>
 	//var BC = new blockCells(2,2,true);
-	var Table = new Table({name:"Моя половина",arena_col:2,arena_row:2,items_col:1,spells_col:1});	
-	console.log(Table);
-	document.body.appendChild(Table.getNode());
-	Table.backHalfTable.fillFirstRow();
-	Table.frontHalfTable.fillFirstRow();
+	var Battle = new BattleScene({name:"Моя половина",arena_col:2,arena_row:2,items_col:1,spells_col:1});	
+	console.log(Battle);
+	document.body.querySelector("#scene").appendChild(Battle.getSceneNode());
+	Battle.processRound();
 
 
 </script>
