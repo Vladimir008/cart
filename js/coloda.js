@@ -74,14 +74,14 @@ function cart(obj){
 function koloda(){
 	this.init = function(){
 		this.carts = [
-			new cart({name:'Воин Бату',strong:2,live:2}),
-			new cart({name:'Воин Бату',strong:2,live:2}),
-			new cart({name:'Загонщик Бату',strong:1,live:3}),
-			new cart({name:'Загонщик Бату',strong:1,live:3}),
-			new cart({name:'Охотник Бату',strong:2,live:1}),
-			new cart({name:'Охотник Бату',strong:2,live:1}),
-			new cart({name:'Травник Бату',strong:1,live:1}),
-			new cart({name:'Травник Бату',strong:1,live:1}),
+			new cart({name:'Юлия',strong:2,live:2}),
+			new cart({name:'Юличка',strong:2,live:2}),
+			new cart({name:'Оля',strong:1,live:3}),
+			new cart({name:'Олечка',strong:1,live:3}),
+			new cart({name:'Ева',strong:2,live:1}),
+			new cart({name:'Евачка',strong:2,live:1}),
+			new cart({name:'Владимир',strong:1,live:1}),
+			new cart({name:'Вова',strong:1,live:1}),
 		   ];
 	} 
 	
@@ -184,6 +184,7 @@ function koloda(){
 	 }
 	 this.getCell = function(col,row){ 
 		var num = (!this.inverse) ? this.row*(row-1)+(col-1) : this.row*(this.row - row)+(col-1); 
+		console.log(num);
 		if (this.cells[num]==undefined){
 			console.error("Нет такой ячейки");
 		}
@@ -251,8 +252,11 @@ function koloda(){
 	 // Заполним первую строку картами
 	 this.fillFirstRow = function(){
 		var carts = this.getCartsFromColoda(this.arena_col);
+		//console.log(carts);
+		//console.log(this.arena_col);
 		for(var i = 1; i<=this.arena_col;i++){
 			var selectCell = this.arena.getCell(i,1);
+				console.log(selectCell);
 				selectCell.setCart(carts.shift());
 				selectCell.setNode();
 		}

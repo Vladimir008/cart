@@ -36,7 +36,7 @@
           console.log("Вызываем fillCartTable");
           this.fillCartTable();
        }
-       this.processRoundForHalfTable(this.selectedHalfTable);
+       this.processRoundForHalfTable(this.selectedHalfTable,this.nonSelectedHalfTable);
        return true;
       };
    
@@ -91,45 +91,102 @@
    */
    this.getCartsForSelected = function(halfTable,oppHalfTable){
        /**
-        * 
+        * Выборка ячеек
         * @param {object} obj - обьект выборки
         * @return {array} выбранные ячейки
         */
        var queryCell = function(obj){
-        if (obj == undefined) obj = {}; 
-        //obj.halfTable - какие ячейки брать из выбранной половины стола
-        if (obj.halfTable == undefined) obj.halfTable = ["arena","spells","items","player"];
-         //obj.oppHalfTable - какие карты брать из противоложной половины стола
-        if (obj.oppHalfTable == undefined) obj.oppHalfTable = ["arena","spells","items","player"];
-        // Расстояние от края максимальное
-        if (obj.distanse == undefined) obj.distanse = 10;
-        // Строка
-        if (obj.row == undefined) obj.row = false;
-        // Cтолбей
-        if (obj.col == undefined) obj.col = false;
-        // Собираем ячейки из нужных областей
-        var cells = []; 
-        
-        obj.halfTable.forEach(function(item){
-            if (halfTable[item]!=undefined && !halfTable[item].cells!=undefined){
-                cells = cells.concat(halfTable[item].cells);  
+            if (obj == undefined) obj = {}; 
+            //obj.halfTable - какие ячейки брать из выбранной половины стола
+            if (obj.halfTable == undefined) obj.halfTable = {"arena":{},"spells":{},"items":{},"player":{}};
+            //obj.oppHalfTable - какие карты брать из противоложной половины стола
+            if (obj.oppHalfTable == undefined) obj.oppHalfTable = {"arena":{},"spells":{},"items":{},"player":{}};
+            var cells = []; 
+            var queryToBlockCell = function(BlockCell,query){ 
+                //Проверка на расстояние от края максимальное
+                 var distanse = (query.distanse != undefined) ? query.distanse : 100;
+                 // проверка на строку
+                 var row = (query.row != undefined) ? query.row : false;
+                 // проверка на столбец
+                 var col = (query.col != undefined) ? query.col : false;
+                 //проверка на наличие карты
+                
+                 BlockCell.cells.forEach(function(item){
+                    var bAdd = true;
+                    if (item.row>distanse){ // Достаточна ли дистанция
+                        bAdd = false
+                    }
+                    else if (row && item.row!=row){ // Строка
+                        bAdd = false
+                    }
+                    else if (col && item.col!=col){ // Строка
+                        bAdd = false
+                    }
+                    else if (query.cart === false && item.cart !== false){
+                        bAdd = false;
+                    }
+                    else if (query.cart === true && item.cart === false){
+                        bAdd = false;
+                    };
+                    if (bAdd){
+                        cells.push(item);
+                    }
+                 });
+                 return true;
             }
-        });
-        return cells;
+           
+            // Собираем ячейки из нужных областей
+            if (obj.halfTable!==false){
+                for (key in obj.halfTable) {
+                    if (halfTable[key]!=undefined && !halfTable[key].cells!=undefined){
+                        queryToBlockCell(halfTable[key],obj.halfTable[key]);
+                    } 
+                }
+            }
+            if (obj.oppHalfTable!==false){
+                for (key in obj.oppHalfTable) {
+                    if (oppHalfTable[key]!=undefined && !oppHalfTable[key].cells!=undefined){
+                        queryToBlockCell(oppHalfTable[key],obj.oppHalfTable[key]);
+                    } 
+                }
+            }
+            return cells;
        };
-       
+       /**
+        * Выборка карт из ячеек
+        * @param {object} obj - обьект выборки
+        * @return {array} выбранные ячейки
+        */
+       var queryCartFromCells = function(cells,obj){
+            var carts = [];
+            cells.forEach(function(item){
+                var cart = item.getCart();
+                if (cart != false){
+                    carts.push(cart);
+                }
+            });
+            return carts;
+       }
+       var MyFirstLineCart = function(){
+           return queryCartFromCells(
+                queryCell({
+                    halfTable:{
+                        arena:{
+                            row:1
+                        }
+                    },
+                    oppHalfTable:{
+                        arena:{
+                            row:1
+                        }
+                    }
+                })
+           );
+        };
        // Если карта для хода ещё не выбрана
        if (halfTable.selectedCart == false || halfTable.selectedCart == undefined){
-           console.log(halfTable.arena.cells);
            var cells = queryCell();
-           console.log(cells);
-           var selectedCarts = [];
-           cells.forEach(function(item){
-               var cart = item.getCart();
-               if (cart != false){
-                   selectedCarts.push(cart);
-               }
-           });
+           var selectedCarts = MyFirstLineCart();
            selectedCarts.forEach(function(item){
                item.getNode().onclick = function(){
                    halfTable.selectedCart = item;
