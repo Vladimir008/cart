@@ -26,19 +26,7 @@
     }
    
     
-    /**
-     * Играется раунд. Проверяем если раунд первый и не заполнен стол - заполняем стол.
-     * Далее, играет текущая половина стола
-     * @return {boolean} Отметка о корректном выполении функции
-     */
-    this.processRound = function (){
-       if (this.round == 1 && this.isFillTable == false){ 
-          console.log("Вызываем fillCartTable");
-          this.fillCartTable();
-       }
-       this.processRoundForHalfTable(this.selectedHalfTable,this.nonSelectedHalfTable);
-       return true;
-      };
+
    
     /**
      * Играет половина стола
@@ -91,8 +79,8 @@
    */
    this.getCartsForSelected = function(halfTable,oppHalfTable){
        /**
-        * Выборка ячеек
-        * @param {object} obj - обьект выборки
+        * Выборка ячеек по необходимым параметрам выборки
+        * @param {object} obj - параметры выборки
         * @return {array} выбранные ячейки
         */
        var queryCell = function(obj){
@@ -102,64 +90,35 @@
             //obj.oppHalfTable - какие карты брать из противоложной половины стола
             if (obj.oppHalfTable == undefined) obj.oppHalfTable = {"arena":{},"spells":{},"items":{},"player":{}};
             var cells = []; 
-            var queryToBlockCell = function(BlockCell,query){ 
-                //Проверка на расстояние от края максимальное
-                 var distanse = (query.distanse != undefined) ? query.distanse : 100;
-                 // проверка на строку
-                 var row = (query.row != undefined) ? query.row : false;
-                 // проверка на столбец
-                 var col = (query.col != undefined) ? query.col : false;
-                 //проверка на наличие карты
-                
-                 BlockCell.cells.forEach(function(item){
-                    var bAdd = true;
-                    if (item.row>distanse){ // Достаточна ли дистанция
-                        bAdd = false
-                    }
-                    else if (row && item.row!=row){ // Строка
-                        bAdd = false
-                    }
-                    else if (col && item.col!=col){ // Строка
-                        bAdd = false
-                    }
-                    else if (query.cart === false && item.cart !== false){
-                        bAdd = false;
-                    }
-                    else if (query.cart === true && item.cart === false){
-                        bAdd = false;
-                    };
-                    if (bAdd){
-                        cells.push(item);
-                    }
-                 });
-                 return true;
-            }
+            
            
             // Собираем ячейки из нужных областей
             if (obj.halfTable!==false){
                 for (key in obj.halfTable) {
                     if (halfTable[key]!=undefined && !halfTable[key].cells!=undefined){
-                        queryToBlockCell(halfTable[key],obj.halfTable[key]);
+                        console.log(halfTable[key]);
+                        cells = cells.concat(halfTable[key].queryCell(obj.halfTable[key]));
                     } 
                 }
             }
             if (obj.oppHalfTable!==false){
                 for (key in obj.oppHalfTable) {
                     if (oppHalfTable[key]!=undefined && !oppHalfTable[key].cells!=undefined){
-                        queryToBlockCell(oppHalfTable[key],obj.oppHalfTable[key]);
+                        cells = cells.concat(oppHalfTable[key].queryCell(obj.oppHalfTable[key]));
                     } 
                 }
             }
             return cells;
        };
        /**
-        * Выборка карт из ячеек
+        * Извлечение карт из ячеек
         * @param {object} obj - обьект выборки
         * @return {array} выбранные ячейки
         */
        var queryCartFromCells = function(cells,obj){
             var carts = [];
             cells.forEach(function(item){
+                console.log(item);
                 var cart = item.getCart();
                 if (cart != false){
                     carts.push(cart);
@@ -175,26 +134,37 @@
                             row:1
                         }
                     },
-                    oppHalfTable:{
+                    oppHalfTable:{}
+                })
+           );
+        };
+        var OppFirstLineCart = function(){
+            return queryCartFromCells(
+                 queryCell({
+                     halfTable:{},
+                     oppHalfTable:{
                         arena:{
                             row:1
                         }
                     }
-                })
-           );
-        };
+                 })
+            );
+         };
        // Если карта для хода ещё не выбрана
        if (halfTable.selectedCart == false || halfTable.selectedCart == undefined){
            var cells = queryCell();
-           var selectedCarts = MyFirstLineCart();
-           selectedCarts.forEach(function(item){
-               item.getNode().onclick = function(){
-                   halfTable.selectedCart = item;
-                   console.log("Сработал onclick");
-                   console.log(item);
+           var canSelectedCarts = MyFirstLineCart();
+           canSelectedCarts.forEach(function(item){
+                item.viewCanSelect();
+                item.getNode().onclick = function(){
+                   item.viewSelected();
+                   halfTable.selectedCart = item; // Запоминаем выбранную карту для нашей половины стола
+                   log.add("Сработал onclick");   
                };
            });
-
+       }
+       else{
+            
        }
        return true;
    }
@@ -269,3 +239,16 @@
    
     return this.init();
 }
+    /**
+     * Играется раунд. Проверяем если раунд первый и не заполнен стол - заполняем стол.
+     * Далее, играет текущая половина стола
+     * @return {boolean} Отметка о корректном выполении функции
+     */
+    BattleScene.prototype.processRound = function (){
+        if (this.round == 1 && this.isFillTable == false){ 
+           console.log("Вызываем fillCartTable");
+           this.fillCartTable();
+        }
+        this.processRoundForHalfTable(this.selectedHalfTable,this.nonSelectedHalfTable);
+        return true;
+       };

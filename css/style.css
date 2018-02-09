@@ -4,7 +4,9 @@ body{
 	--height-cart:calc(var(--width-cart)*1.5555);
 	
 }
-
+#scene{
+	background: url(../images/battle_scene/fon1.jpg);
+}
 /*-------------Половина стола ----------*/
 .half-table__left,
 .half-table__center,
@@ -53,11 +55,11 @@ body{
 	height: 100%;
 	transition: transform 1s 0.1s;
 	backface-visibility:hidden;
-	border:1px solid black;
+	//border:1px solid black;
 	border-radius: 5px;
 }
 .cart-front{
-	background-color: #66ccff;
+	background-color: #ffffff;
 }
 .cart-back{
 	background-image: url('../images/cart/back/1.png');
@@ -65,6 +67,18 @@ body{
 	transform: rotateY(180deg);
 
 }
+/*Карты - подсветка выбора*/
+.cart.cart__can-selected-level-1{
+	border: 2px solid #02680b;
+	margin:3px;
+}
+.cart.cart__selected-level-1{
+	border: 2px solid #02e415;
+	margin:3px;
+}
+
+
+/*Карты - повороты*/
 //.cart:hover .cart-front{ transform: rotateY(180deg); }
 //.cart:hover .cart-back { transform: rotateY(360deg); }
 /*Поворот налево*/
