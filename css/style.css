@@ -72,12 +72,59 @@ body{
 	border: 2px solid #02680b;
 	margin:3px;
 }
+.cart.cart__can-selected-level-1:hover{
+	border: 2px solid #02e415;
+}
+.cart.cart__can-selected-level-2{
+	border: 2px solid #d37203;
+	margin:3px;
+}
+.cart.cart__can-selected-level-2:hover{
+	border: 2px solid #d30303;
+}
 .cart.cart__selected-level-1{
 	border: 2px solid #02e415;
 	margin:3px;
 }
 
+/*Карты - эффекты изменений*/
+.cart-change-info{
+	position: absolute;
+    z-index: 1;
+    background: red;
+    display: inline-block;
+    padding: 5px;
+    border-radius: 50%;
+    /* transition: all 1s 1s; */
+    width: 15px;
+    height: 15px;
+    text-align: center;
+    bottom: 100%;
+	right: -5%;
+	opacity: 0;
+	animation: cart-change-info--life  0.35s infinite linear;
+	animation-iteration-count:1;
+}
+.cart-change-info--life{
+	//transform: translate(0,-30px);
+}
 
+@keyframes cart-change-info--life {
+    0%   {bottom: 50%; opacity: 1;}
+    50%  {bottom: 100%; opacity: 1;}
+    100% {bottom: 100%; opacity: 0;}
+}
+
+/*Карты - мертвая карта*/
+.cart--dead-animation{
+	opacity: 0;
+	animation: cart-dead  0.35s infinite linear;
+	animation-iteration-count:1;
+}
+@keyframes cart-dead {
+    0%   { opacity: 1;}
+    100% { opacity: 0;}
+}
 /*Карты - повороты*/
 //.cart:hover .cart-front{ transform: rotateY(180deg); }
 //.cart:hover .cart-back { transform: rotateY(360deg); }

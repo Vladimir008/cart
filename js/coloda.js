@@ -6,17 +6,20 @@ function cart(obj){
 	this.name = (obj.name!=undefined) ? obj.name : "Карта";
 	this.node = false;
 	/* Основные параметры для механики игры */
+	this.changeLive = 0; // Величина изменения жизни
 	this.live_value = 1; // Жизни
 	this.max_live_value = 1; // Жизни
 	this.strong_value = 1; // Сила атаки
 	this.defense_value = 0; // Оборона/Защита
 	this.distanse_attack_value = 1; // Дистанция атаки
+	this.type_block_cell = "arena"; // arena || items || spells
 	this.type = "warrion";
 	this.max_live((obj.live!=undefined) ? obj.live : 3);
 	this.live((obj.live!=undefined) ? obj.live : 1);
 	this.strong((obj.strong!=undefined) ? obj.strong : 1);
 	this.defense((obj.defense!=undefined) ? obj.defense : 0);
-	
+	this.row = false;
+	this.col = false;
 };
 
 cart.prototype.max_live = function(value){
@@ -27,6 +30,8 @@ cart.prototype.max_live = function(value){
 cart.prototype.live = function(value){
 	if (!arguments.length) return this.live_value;
 	if (value > this.max_live_value) {value = this.max_live_value;}
+	this.changeLive = value - this.live_value;
+	console.log(this.changeLive);
 	this.live_value = value;
 }
 cart.prototype.strong = function(value){
@@ -46,7 +51,7 @@ cart.prototype.distanse_attack = function(value){
 }
 
 /** Построение html */ 
-cart.prototype.getInnerHtml = function(){
+cart.prototype.getInnerHtml = function(showChange){
 	var innerHtml = '<div class="cart-front">'
 					   +  this.name + '<br/>'
 					   +  this.live() + '<br/>'
@@ -54,13 +59,19 @@ cart.prototype.getInnerHtml = function(){
 					   +  this.defense() + '<br/>'
 					+ '</div>'
 					+ '<div class="cart-back"></div>';
+	if (showChange && this.changeLive != 0){
+		console.log('Изменение жизни',this.changeLive);
+		innerHtml += '<div class="cart-change-info cart-change-info--life cart-change-info--plus">'
+				+ this.changeLive
+				+ '</div>'; 
+	}
 	return innerHtml;
 }
 /** Создать узел */ 
 cart.prototype.setNode = function(){
 	var cartNode = document.createElement('div');
 	cartNode.className = "cart";
-	cartNode.innerHTML = this.getInnerHtml();
+	cartNode.innerHTML = this.getInnerHtml(false);
 	this.node = cartNode;
 	return this.node;
  }
@@ -71,13 +82,32 @@ cart.prototype.getNode = function(){
 	}
 	return this.node;
 }
+ /** обновить узел */ 
+cart.prototype.updateNode = function(){
+	if (!this.node){
+		this.setNode();
+	}
+	else{
+		this.node.innerHTML = this.getInnerHtml(true);
+	}
+	return this.node;
+}
+// Получить 
+cart.prototype.getRow = function(){
+	return this.row;
+}
  /** Показать что карта доступна для выбора*/  
 cart.prototype.viewCanSelect = function(level){
 	if (level == undefined || level<1) level = 1; 
 	// если level 1 подсвечиваем карту которая будет делать действие 
 	// если level 2 подсвечиваем свою карту которая будет принимать положительное действие
 	// если level 3 подсвечиваем вражескую карту, которая будет принимать отрицательное действие
-	this.getNode().classList.add("cart__can-selected-level-1");
+	if (level == 1){
+		this.getNode().classList.add("cart__can-selected-level-1");
+	}
+	else if(level == 2){
+		this.getNode().classList.add("cart__can-selected-level-2");
+	}
  }
   /** Показать что карта выбрана*/
 cart.prototype.viewSelected = function(level){
@@ -88,19 +118,45 @@ cart.prototype.viewSelected = function(level){
 	this.getNode().classList.remove("cart__can-selected-level-1");
 	this.getNode().classList.add("cart__selected-level-1");
  }
+ cart.prototype.viewClearSelect = function(){ 
+	var classList = this.getNode().classList;  
+	classList.remove("cart__can-selected-level-1");
+	classList.remove("cart__selected-level-1");
+	classList.remove("cart__can-selected-level-2");
+	classList.remove("cart__selected-level-2");
+	classList.remove("cart__can-selected-level-3");
+	classList.remove("cart__selected-level-3");
+ }
+ 
+ cart.prototype.basicAttackCart = function(cart){
+	cart.live(cart.live() - this.strong());
+	cart.updateNode();
+}
+ cart.prototype.attackCart = function(cart){
+	this.basicAttackCart(cart);
+ }
+ cart.prototype.counterattackCart = function(cart){
+	this.basicAttackCart(cart);
+ }
+ cart.prototype.dead = function(time){
+	this.node.classList.add("cart--dead-animation");
+	//Потом событие для смерти
 
+	// А потом уже все, очищаем память
+	return true;
+ }
  /* --------------------------------------- КОЛОДА КАРТ -----------------------------------------------*/
 function koloda(){
 	this.init = function(){
 		this.carts = [
-			new cart({name:'Юлия',strong:2,live:2}),
-			new cart({name:'Юличка',strong:2,live:2}),
-			new cart({name:'Оля',strong:1,live:3}),
-			new cart({name:'Олечка',strong:1,live:3}),
-			new cart({name:'Ева',strong:2,live:1}),
-			new cart({name:'Евачка',strong:2,live:1}),
-			new cart({name:'Владимир',strong:1,live:1}),
-			new cart({name:'Вова',strong:1,live:1}),
+			new cart({name:'Юлия',strong:2,live:4}),
+			new cart({name:'Юличка',strong:2,live:4}),
+			new cart({name:'Оля',strong:1,live:4}),
+			new cart({name:'Олечка',strong:1,live:4}),
+			new cart({name:'Ева',strong:2,live:4}),
+			new cart({name:'Евачка',strong:2,live:4}),
+			new cart({name:'Владимир',strong:1,live:4}),
+			new cart({name:'Вова',strong:1,live:4}),
 		   ];
 	}
 	return this.init();
@@ -129,6 +185,8 @@ koloda.prototype.getCarts = function (count){
  };
  cellCart.prototype.setCart = function(cart_obj){
 	this.cart = cart_obj;
+	this.cart.row = this.row;
+	this.cart.col = this.col;
 }
 cellCart.prototype.getCart = function(){
 	return this.cart;
@@ -138,11 +196,16 @@ cellCart.prototype.setNode = function(){
    cartCellNode.className = "cell-cart";
    cartCellNode.setAttribute("row",this.row);
    cartCellNode.setAttribute("col",this.col);
-   if (this.cart!=undefined && this.cart!=false){
-		cartCellNode.appendChild(this.cart.getNode());
-   }
-   this.node = cartCellNode; 
+   this.node = cartCellNode;  
+   this.setInnerNodes();
+   
    return this.node;
+}
+cellCart.prototype.setInnerNodes = function(){
+	this.node.innerHTML = '';
+	if (this.cart!=undefined && this.cart!=false){
+		this.node.appendChild(this.cart.getNode());
+   }
 }
 cellCart.prototype.getNode = function(){
 	if (!this.node){
@@ -150,6 +213,32 @@ cellCart.prototype.getNode = function(){
 	}
 	return this.node;
 }
+cellCart.prototype.updateNode = function(){
+	if (!this.node){
+		this.setNode();
+	}
+	else{
+		this.setInnerNodes();
+	}
+	return this.node;
+}
+cellCart.prototype.clearDeadCart = function(){
+	if (this.cart.dead()){
+		var th = this;
+		
+		setTimeout(function(){
+			th.clearCart();
+			console.log("rrr ",this);
+		},350);
+	}
+
+}
+cellCart.prototype.clearCart = function(){
+	this.cart = false;
+	this.updateNode();
+	return true;
+}
+
  /* --------------------------------------- ГРУППА ЯЧЕЕК -----------------------------------------------*/
  function blockCells(col,row,inverse){
 	 this.col = (col!=undefined && col > 0) ? col : 1;
@@ -199,11 +288,9 @@ cellCart.prototype.getNode = function(){
 	 }
 	 return this.node;
  }
+
  blockCells.prototype.getCell = function(col,row){ 
 	var num = (!this.inverse) ? this.col*(row-1)+(col-1) : this.col*(this.row - row)+(col-1); 
-	
-	console.log(col,row,num);
-	console.log(this.cells);
 	if (this.cells[num]==undefined){
 		console.error("Нет такой ячейки");
 	}
@@ -226,14 +313,18 @@ cellCart.prototype.getNode = function(){
 	 //проверка на наличие карты
 	
 	 var cells = [];
+	 if (query.deadCart === true || query.deadCart === false){
+		query.cart = true;
+	 }
 	 this.cells.forEach(function(item){
 		var bAdd = true;
+		
 		if (item.row>distanse){ bAdd = false} // Достаточна ли дистанция	
 		else if (row && item.row!=row){ bAdd = false} // Строка
 		else if (col && item.col!=col){ bAdd = false} // Строка
 		else if (query.cart === false && item.cart !== false) {bAdd = false} // Карта ячейки (нет)
-		else if (query.cart === true && item.cart === false){ bAdd = false} // Карта (tсть)
-
+		else if (query.cart === true && item.cart === false) {bAdd = false} // Карта (tсть)
+		else if ((query.deadCart === true && item.cart !== false && item.cart.live() > 0)) {bAdd = false} // Нужна мертвая карты
 		if (bAdd){
 			cells.push(item);
 		}
@@ -271,7 +362,7 @@ playerProfile.prototype.setNode = function(){
  	this.arena_row = (obj.arena_row!=undefined) ? obj.arena_row : 3;
  	this.arena_col = (obj.arena_col!=undefined) ? obj.arena_col : 4;
 	this.bAddCart = false; // была ли уже добавлена карта???
-	this.selectedCart = false; // Выбранная 
+
 	this.spells_col = (obj.spells_col!=undefined) ? obj.spells_col : 3;
  	this.items_col = (obj.items_col!=undefined) ? obj.items_col : 3;
  	this.node = false;
@@ -296,7 +387,6 @@ var carts = this.getCartsFromColoda(this.arena_col);
 //console.log(this.arena_col);
 for(var i = 1; i<=this.arena_col;i++){
 	var selectCell = this.arena.getCell(i,1);
-		console.log(selectCell);
 		selectCell.setCart(carts.shift());
 		selectCell.setNode();
 }

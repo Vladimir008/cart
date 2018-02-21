@@ -23,28 +23,11 @@
        this.frontHalfTable = new halfTable(settings);
        this.selectedHalfTable = this.frontHalfTable; // Выбранный стол (стол, который сейчас ходит)
        this.nonSelectedHalfTable = this.backHalfTable; // Невыбранный стол (стол, на которого ходят)
+       this.selectedCart = false; // Выбранная карта
+
     }
    
-    
-
-   
-    /**
-     * Играет половина стола
-     * @param {halfTable} - выбранная половина стола (обьект)
-     * @param {oppHalfTable} - противоложная половина стола (обьект)
-     * @return {boolean} Отметка о корректном выполении функции
-     */
-   this.processRoundForHalfTable = function (halfTable,oppHalfTable){
-   
-       // НА ПОТОМ: if (!halfTable.bAddCart){  НА Если новая карта ЕЩЁ не добавлена
-           //	this.addCartToHalfTable(halfTable);
-       //}
-       //else{
-           var carts = this.getCartsForSelected(halfTable,oppHalfTable); // Получили карты
-           // functuion // пометили карты для клика, навесли на них функцию Battle.processRound
-       //}
-       return true;
-   }
+ 
    
    /**
     *  Заполняет стол картами - применяется обычно на первом ходу
@@ -77,30 +60,154 @@
     * @param {object} cart - карта (обьект). Если задана то параметы выбора могут измениться
      * @return {boolean} Отметка о корректном выполении функции
    */
-   this.getCartsForSelected = function(halfTable,oppHalfTable){
+   this.addEventsForInteractionCarts = function(){
+
+
+
+
+        var OppFirstLineCart = function(){
+            return this.queryCartFromCells(
+                this.queryCell({
+                     halfTable:{},
+                     oppHalfTable:{
+                        arena:{row:1}
+                    }
+                 })
+            );
+         };
+        
+        // Перед началом взаимодействия
+        // Очистить события и выдения всех карт, кроме 
+        this.clearCanSelectedCart(false);
+
+       // Если карта для хода ещё не выбрана
+       if (this.selectedCart == false || this.selectedCart == undefined){
+
+            var canSelectedCarts = this.queryCartFromCells(
+                    this.queryCell({
+                        halfTable:{arena:{distanse:1}},
+                        oppHalfTable:{}
+                    })
+            );
+           canSelectedCarts.forEach(function(item){
+                item.viewCanSelect(1);
+                item.getNode().onclick = function(){
+                   item.viewSelected(1);
+                   Battle.selectedCart = item; // Запоминаем выбранную карту для нашей половины стола
+                   log.add("Сработал onclick - выбрана ходящая карта");  
+                   Battle.processRound();
+               };
+           });
+       }
+       // Проверяем выбрана ли вторая карта
+       else{
+            var rowSelectedCart = this.selectedCart.getRow();
+            var distanse = this.selectedCart.distanse_attack();
+            var canSelectedCarts = this.queryCartFromCells(
+                this.queryCell({
+                    halfTable:{},
+                    oppHalfTable:{arena:{distanse:distanse - rowSelectedCart + 1}},
+                })
+            );
+            canSelectedCarts.forEach(function(item){
+                item.viewCanSelect(2);
+                item.getNode().onclick = function(){
+                    log.add("Сработал onclick - выбрана карта на которую ходят");  
+                    Battle.clearCanSelectedCart(true);
+                    Battle.interactionCarts(item);
+                }
+            });
+       }
+
+       return true;
+   }
+   this.interactionCarts = function(cart){
+        this.selectedCart.attackCart(cart);
+        var varThis = this; 
+        setTimeout(function(){
+            cart.counterattackCart(varThis.selectedCart);
+        },500);
+        setTimeout(function(){
+            varThis.selectedCart = false;
+            varThis.processRound();
+        },1000);
+
+        
+   }
+      /**
+        * Очистка представления выбранных карт из ячеек
+        * @param {boolean} full - убирать ли выбранную карту?
+        * @return {void} выбранные ячейки
+        */
+    this.clearCanSelectedCart = function(full){
+        if (full == undefined) full = false;
+        var allCarts = this.queryCartFromCells(this.queryCell());
+        var selectedCart = this.selectedCart;
+        allCarts.forEach(function(item){
+            if (full || item != selectedCart){
+                item.viewClearSelect();
+                item.getNode().onclick = null;
+            }
+        });
+    }
        /**
+        * Очистка умерших карт из ячеек
+        * @param {boolean} full - убирать ли выбранную карту?
+        * @return {void} выбранные ячейки
+        */
+        this.clearDeadCart = function(){
+            var cells = this.queryCell({
+                    halfTable:{arena:{deadCart:true}},
+                    oppHalfTable:{arena:{deadCart:true}}
+            });
+            console.log();
+            cells.forEach(function(item){
+                item.clearDeadCart();
+            });
+           // console.log("Убрать карты",carts);
+            /*
+            */
+        }
+        
+        /**
+        * Извлечение карт из ячеек
+        * @param {object} obj - обьект выборки
+        * @return {array} выбранные ячейки
+        */
+        this.queryCartFromCells = function(cells,obj){
+            var carts = [];
+            cells.forEach(function(item){
+                var cart = item.getCart();
+                if (cart != false){
+                    carts.push(cart);
+                }
+            });
+            return carts;
+        }
+        /**
         * Выборка ячеек по необходимым параметрам выборки
         * @param {object} obj - параметры выборки
         * @return {array} выбранные ячейки
         */
-       var queryCell = function(obj){
+        this.queryCell = function(obj){
+                   
+            var halfTable = this.selectedHalfTable
+            ,oppHalfTable = this.nonSelectedHalfTable;
             if (obj == undefined) obj = {}; 
             //obj.halfTable - какие ячейки брать из выбранной половины стола
             if (obj.halfTable == undefined) obj.halfTable = {"arena":{},"spells":{},"items":{},"player":{}};
             //obj.oppHalfTable - какие карты брать из противоложной половины стола
             if (obj.oppHalfTable == undefined) obj.oppHalfTable = {"arena":{},"spells":{},"items":{},"player":{}};
-            var cells = []; 
-            
-           
-            // Собираем ячейки из нужных областей
+            var cells = [];     
+            // Собираем ячейки из текущей области
             if (obj.halfTable!==false){
                 for (key in obj.halfTable) {
                     if (halfTable[key]!=undefined && !halfTable[key].cells!=undefined){
-                        console.log(halfTable[key]);
                         cells = cells.concat(halfTable[key].queryCell(obj.halfTable[key]));
-                    } 
+                    }
                 }
             }
+            // Собираем ячейки из противоположной
             if (obj.oppHalfTable!==false){
                 for (key in obj.oppHalfTable) {
                     if (oppHalfTable[key]!=undefined && !oppHalfTable[key].cells!=undefined){
@@ -110,64 +217,7 @@
             }
             return cells;
        };
-       /**
-        * Извлечение карт из ячеек
-        * @param {object} obj - обьект выборки
-        * @return {array} выбранные ячейки
-        */
-       var queryCartFromCells = function(cells,obj){
-            var carts = [];
-            cells.forEach(function(item){
-                console.log(item);
-                var cart = item.getCart();
-                if (cart != false){
-                    carts.push(cart);
-                }
-            });
-            return carts;
-       }
-       var MyFirstLineCart = function(){
-           return queryCartFromCells(
-                queryCell({
-                    halfTable:{
-                        arena:{
-                            row:1
-                        }
-                    },
-                    oppHalfTable:{}
-                })
-           );
-        };
-        var OppFirstLineCart = function(){
-            return queryCartFromCells(
-                 queryCell({
-                     halfTable:{},
-                     oppHalfTable:{
-                        arena:{
-                            row:1
-                        }
-                    }
-                 })
-            );
-         };
-       // Если карта для хода ещё не выбрана
-       if (halfTable.selectedCart == false || halfTable.selectedCart == undefined){
-           var cells = queryCell();
-           var canSelectedCarts = MyFirstLineCart();
-           canSelectedCarts.forEach(function(item){
-                item.viewCanSelect();
-                item.getNode().onclick = function(){
-                   item.viewSelected();
-                   halfTable.selectedCart = item; // Запоминаем выбранную карту для нашей половины стола
-                   log.add("Сработал onclick");   
-               };
-           });
-       }
-       else{
-            
-       }
-       return true;
-   }
+   
     // Получить список для выбора карт
     this.gettCellsForSelected = function(halfTable){}
     
@@ -239,16 +289,26 @@
    
     return this.init();
 }
-    /**
-     * Играется раунд. Проверяем если раунд первый и не заполнен стол - заполняем стол.
-     * Далее, играет текущая половина стола
-     * @return {boolean} Отметка о корректном выполении функции
-     */
-    BattleScene.prototype.processRound = function (){
-        if (this.round == 1 && this.isFillTable == false){ 
-           console.log("Вызываем fillCartTable");
-           this.fillCartTable();
-        }
-        this.processRoundForHalfTable(this.selectedHalfTable,this.nonSelectedHalfTable);
-        return true;
-       };
+/**
+ * Играется раунд. Проверяем если раунд первый и не заполнен стол - заполняем стол.
+ * Далее, играет текущая половина стола
+ * @return {boolean} Отметка о корректном выполении функции
+ */
+BattleScene.prototype.processRound = function (){
+    // Заполняем первые ряды
+    if (this.round == 1 && this.isFillTable == false){ 
+        this.fillCartTable();
+        this.isFillTable = true;
+    }
+    // НА ПОТОМ: if (!this.selectedHalfTable.bAddCart){  НА Если новая карта ЕЩЁ не добавлена
+            //	this.addCartToHalfTable(halfTable);
+        //}
+    //else{
+    this.addEventsForInteractionCarts();
+     
+
+    // Конец раунда - очистка умерших карт
+    this.clearDeadCart(); // Вопрос стоит ли делать проверку вначале, или в конце???
+
+    return true;
+};
