@@ -31,7 +31,7 @@ cart.prototype.live = function(value){
 	if (!arguments.length) return this.live_value;
 	if (value > this.max_live_value) {value = this.max_live_value;}
 	this.changeLive = value - this.live_value;
-	console.log(this.changeLive);
+	//console.log(this.changeLive);
 	this.live_value = value;
 }
 cart.prototype.strong = function(value){
@@ -60,7 +60,7 @@ cart.prototype.getInnerHtml = function(showChange){
 					+ '</div>'
 					+ '<div class="cart-back"></div>';
 	if (showChange && this.changeLive != 0){
-		console.log('Изменение жизни',this.changeLive);
+		//console.log('Изменение жизни',this.changeLive);
 		innerHtml += '<div class="cart-change-info cart-change-info--life cart-change-info--plus">'
 				+ this.changeLive
 				+ '</div>'; 
@@ -131,19 +131,46 @@ cart.prototype.viewSelected = function(level){
  cart.prototype.basicAttackCart = function(cart){
 	cart.live(cart.live() - this.strong());
 	cart.updateNode();
+	var animateAttack = anime({
+		targets: cart.node.querySelector(".cart-change-info--life"),
+		opacity:{
+			value:[1, 0],
+			duration: 500,
+			delay:500,
+			easing:"easeOutQuint",
+		},
+		translateY:{
+			value:"-40px",
+			duration: 500,
+			easing:"easeInOutQuad",
+		},
+	  });
+	return 1000;
 }
+
  cart.prototype.attackCart = function(cart){
-	this.basicAttackCart(cart);
+	var time = this.basicAttackCart(cart);
+	return time;
  }
  cart.prototype.counterattackCart = function(cart){
-	this.basicAttackCart(cart);
+	var time = this.basicAttackCart(cart);
+	return time;
  }
  cart.prototype.dead = function(time){
-	this.node.classList.add("cart--dead-animation");
+	var node = this.node;
+	var animateAttack = anime({
+		targets: node,
+		opacity:{
+			value:[1, 0],
+			duration: 700,
+			delay:0,
+			easing:"easeOutQuint",
+		},
+	});
 	//Потом событие для смерти
 
 	// А потом уже все, очищаем память
-	return true;
+	return 700;
  }
  /* --------------------------------------- КОЛОДА КАРТ -----------------------------------------------*/
 function koloda(){
@@ -153,6 +180,14 @@ function koloda(){
 			new cart({name:'Юличка',strong:2,live:4}),
 			new cart({name:'Оля',strong:1,live:4}),
 			new cart({name:'Олечка',strong:1,live:4}),
+			new cart({name:'Ева',strong:2,live:4}),
+			new cart({name:'Евачка',strong:2,live:4}),
+			new cart({name:'Владимир',strong:1,live:4}),
+			new cart({name:'Вова',strong:1,live:4}),
+			new cart({name:'Ева',strong:2,live:4}),
+			new cart({name:'Евачка',strong:2,live:4}),
+			new cart({name:'Владимир',strong:1,live:4}),
+			new cart({name:'Вова',strong:1,live:4}),
 			new cart({name:'Ева',strong:2,live:4}),
 			new cart({name:'Евачка',strong:2,live:4}),
 			new cart({name:'Владимир',strong:1,live:4}),
@@ -187,6 +222,16 @@ koloda.prototype.getCarts = function (count){
 	this.cart = cart_obj;
 	this.cart.row = this.row;
 	this.cart.col = this.col;
+}
+/**
+ *  Анимировано добавляет карту в ячейку
+ */
+cellCart.prototype.addCart = function(cart_obj){
+	// TODO Сделать здесь анимацию
+	if (this.cart == false){
+		this.setCart(cart_obj);
+		this.updateNode();
+	}
 }
 cellCart.prototype.getCart = function(){
 	return this.cart;
@@ -223,21 +268,30 @@ cellCart.prototype.updateNode = function(){
 	return this.node;
 }
 cellCart.prototype.clearDeadCart = function(){
-	if (this.cart.dead()){
-		var th = this;
-		
-		setTimeout(function(){
-			th.clearCart();
-			console.log("rrr ",this);
-		},350);
-	}
-
+	var delayTime = this.cart.dead();
+	var th = this;
+	setTimeout(function(){
+		th.clearCart();
+	},delayTime);
 }
 cellCart.prototype.clearCart = function(){
 	this.cart = false;
 	this.updateNode();
 	return true;
 }
+cellCart.prototype.viewCanAddCart = function(level){
+	if (level == undefined || level<1) level = 1;
+	// если level 1 подсвечиваем карту которая будет делать действие 
+	if (level == 1){
+		this.getNode().classList.add("cell-cart--can-added");
+	}
+	/*
+	else if(level == 2){
+		this.getNode().classList.add("");
+	}
+	*/
+	return true;
+ }
 
  /* --------------------------------------- ГРУППА ЯЧЕЕК -----------------------------------------------*/
  function blockCells(col,row,inverse){
@@ -318,7 +372,7 @@ cellCart.prototype.clearCart = function(){
 	 }
 	 this.cells.forEach(function(item){
 		var bAdd = true;
-		
+		//console.log(item.cart);
 		if (item.row>distanse){ bAdd = false} // Достаточна ли дистанция	
 		else if (row && item.row!=row){ bAdd = false} // Строка
 		else if (col && item.col!=col){ bAdd = false} // Строка
@@ -361,7 +415,7 @@ playerProfile.prototype.setNode = function(){
  	this.name = (obj.inverse!=undefined) ? obj.inverse : false;
  	this.arena_row = (obj.arena_row!=undefined) ? obj.arena_row : 3;
  	this.arena_col = (obj.arena_col!=undefined) ? obj.arena_col : 4;
-	this.bAddCart = false; // была ли уже добавлена карта???
+	//this.bAddCart = false; // была ли уже добавлена карта???
 
 	this.spells_col = (obj.spells_col!=undefined) ? obj.spells_col : 3;
  	this.items_col = (obj.items_col!=undefined) ? obj.items_col : 3;
@@ -377,20 +431,24 @@ playerProfile.prototype.setNode = function(){
 
 // Получить карты из колоды
 halfTable.prototype.getCartsFromColoda = function(count){
-if (count==undefined || isNaN(count) || count<=0) count = 0; 
-return this.koloda.getCarts(count);
+if (count==undefined || isNaN(count) || count<=0) count = 1; 
+	return this.koloda.getCarts(count);
+}
+halfTable.prototype.addCartFromColoda = function(){
+	var carts = this.getCartsFromColoda();
+	return carts[0];
 }
 // Заполним первую строку картами
 halfTable.prototype.fillFirstRow = function(){
-var carts = this.getCartsFromColoda(this.arena_col);
-//console.log(carts);
-//console.log(this.arena_col);
-for(var i = 1; i<=this.arena_col;i++){
-	var selectCell = this.arena.getCell(i,1);
-		selectCell.setCart(carts.shift());
-		selectCell.setNode();
-}
-// Продолдим потом ....
+	var carts = this.getCartsFromColoda(this.arena_col);
+	//console.log(carts);
+	//console.log(this.arena_col);
+	for(var i = 1; i<=this.arena_col;i++){
+		var selectCell = this.arena.getCell(i,1);
+			selectCell.setCart(carts.shift());
+			selectCell.setNode();
+	}
+	// Продолдим потом ....
 }
  function log(){
 	 this.add = function(mess){

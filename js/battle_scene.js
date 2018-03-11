@@ -24,7 +24,7 @@
        this.selectedHalfTable = this.frontHalfTable; // Выбранный стол (стол, который сейчас ходит)
        this.nonSelectedHalfTable = this.backHalfTable; // Невыбранный стол (стол, на которого ходят)
        this.selectedCart = false; // Выбранная карта
-
+       this.addedCart = false; // Добавляемая карта
     }
    
  
@@ -43,15 +43,9 @@
    /**
     * ЗАГЛУШКА Добавляет новую карту на стол
     */
-   this.addCartToHalfTable = function (halfTable){
+   /*this.addCartToHalfTable = function (halfTable){
        this.getCartFromColoda(halfTable);
-   }
-   /**
-    * ЗАГЛУШКА Берет карту из колоды половины стола и кладет на арену
-    */
-    this.getCartFromColodaHalfTable = function(halfTable){
-
-    }
+   }*/
 
    /**
     *   Определяет и отдает карты для выбора
@@ -60,26 +54,31 @@
     * @param {object} cart - карта (обьект). Если задана то параметы выбора могут измениться
      * @return {boolean} Отметка о корректном выполении функции
    */
-   this.addEventsForInteractionCarts = function(){
-
-
-
-
-        var OppFirstLineCart = function(){
-            return this.queryCartFromCells(
-                this.queryCell({
-                     halfTable:{},
-                     oppHalfTable:{
-                        arena:{row:1}
-                    }
-                 })
-            );
-         };
-        
+   this.addEventsForInteractionCarts = function(){   
         // Перед началом взаимодействия
         // Очистить события и выдения всех карт, кроме 
         this.clearCanSelectedCart(false);
 
+
+       // Проверим что выведена карта
+       if (this.addedCart == false || this.addedCart == undefined){
+            this.addedCart = this.selectedHalfTable.addCartFromColoda();
+            var canCellForAdd = this.queryCell({
+                halfTable:{arena:{cart:false}},
+                oppHalfTable:{}
+            });
+
+            console.log(this.addedCart);
+            canCellForAdd.forEach(function(item){
+                item.viewCanAddCart(1);
+                item.getNode().onclick = function(){
+                    
+                    item.addCart(Battle.addedCart);
+                    Battle.processRound();
+                }
+            });
+            return true;
+       } 
        // Если карта для хода ещё не выбрана
        if (this.selectedCart == false || this.selectedCart == undefined){
 
@@ -122,17 +121,18 @@
        return true;
    }
    this.interactionCarts = function(cart){
-        this.selectedCart.attackCart(cart);
-        var varThis = this; 
+        var delayTime = 0;
+        delayTime = this.selectedCart.attackCart(cart);
+        var varThis = this;
+        // Animate 
         setTimeout(function(){
-            cart.counterattackCart(varThis.selectedCart);
-        },500);
-        setTimeout(function(){
-            varThis.selectedCart = false;
-            varThis.processRound();
-        },1000);
-
-        
+            var delayTime = cart.counterattackCart(varThis.selectedCart);
+            setTimeout(function(){
+                varThis.selectedCart = false;
+                varThis.processRound();
+            },delayTime);
+        },delayTime);
+             
    }
       /**
         * Очистка представления выбранных карт из ячеек
@@ -150,6 +150,10 @@
             }
         });
     }
+    this.clearCellCanAddedCart = function(full){
+        var allCells = this.queryCell();
+        
+    }
        /**
         * Очистка умерших карт из ячеек
         * @param {boolean} full - убирать ли выбранную карту?
@@ -160,7 +164,7 @@
                     halfTable:{arena:{deadCart:true}},
                     oppHalfTable:{arena:{deadCart:true}}
             });
-            console.log();
+            
             cells.forEach(function(item){
                 item.clearDeadCart();
             });
@@ -221,10 +225,7 @@
     // Получить список для выбора карт
     this.gettCellsForSelected = function(halfTable){}
     
-    this.addCartToCell = function (cell,cart){
-       // Проверяем что ячейка не занята, делаем анимацию, и убираем this.selectCart
-       return true;
-    };
+
     
    
    // Конец раунда
@@ -300,9 +301,7 @@ BattleScene.prototype.processRound = function (){
         this.fillCartTable();
         this.isFillTable = true;
     }
-    // НА ПОТОМ: if (!this.selectedHalfTable.bAddCart){  НА Если новая карта ЕЩЁ не добавлена
-            //	this.addCartToHalfTable(halfTable);
-        //}
+   
     //else{
     this.addEventsForInteractionCarts();
      
@@ -312,3 +311,14 @@ BattleScene.prototype.processRound = function (){
 
     return true;
 };
+BattleScene.prototype.animator = function(funct,item,time){
+
+};
+BattleScene.prototype.animation = {
+    attackCart : {
+        time: 500,
+        func: function(time){
+
+        }
+    }
+}

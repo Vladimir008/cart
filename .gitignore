@@ -1,4 +1,7 @@
-.vscode/
+﻿.vscode/
+.settings/
 задачи.txt
 .gitignore
+.project
+.buildpath
 images/
