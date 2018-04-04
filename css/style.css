@@ -31,6 +31,7 @@ body{
 }
 .cell-cart{
 	display: table-cell;
+	position: relative;
 	border:1px solid #00000033;
 	width:calc(var(--width-cart) + 10px);
 	height:calc(var(--height-cart) + 10px);
@@ -38,10 +39,14 @@ body{
 .cell-cart--can-added::before{
 	content:' ';
 	display: block;
+	position: absolute;
 	width: var(--width-cart);
 	height: var(--height-cart);
 	border: 2px solid #02680b;
-    margin: 3px;
+	margin: 3px;
+	top:3px;
+	z-index: 1;
+	
 }
 
 /*-------------Карта ----------*/

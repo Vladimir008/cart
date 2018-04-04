@@ -179,19 +179,19 @@ function koloda(){
 			new cart({name:'Юлия',strong:2,live:4}),
 			new cart({name:'Юличка',strong:2,live:4}),
 			new cart({name:'Оля',strong:1,live:4}),
-			new cart({name:'Олечка',strong:1,live:4}),
-			new cart({name:'Ева',strong:2,live:4}),
-			new cart({name:'Евачка',strong:2,live:4}),
-			new cart({name:'Владимир',strong:1,live:4}),
-			new cart({name:'Вова',strong:1,live:4}),
-			new cart({name:'Ева',strong:2,live:4}),
-			new cart({name:'Евачка',strong:2,live:4}),
-			new cart({name:'Владимир',strong:1,live:4}),
-			new cart({name:'Вова',strong:1,live:4}),
-			new cart({name:'Ева',strong:2,live:4}),
-			new cart({name:'Евачка',strong:2,live:4}),
-			new cart({name:'Владимир',strong:1,live:4}),
-			new cart({name:'Вова',strong:1,live:4}),
+			new cart({name:'Монстр',strong:3,live:4}),
+			//new cart({name:'Ева',strong:2,live:4}),
+			//new cart({name:'Евачка',strong:2,live:4}),
+			//new cart({name:'Владимир',strong:1,live:4}),
+			//new cart({name:'Вова',strong:1,live:4}),
+			//new cart({name:'Ева',strong:2,live:4}),
+			//new cart({name:'Евачка',strong:2,live:4}),
+			//new cart({name:'Владимир',strong:1,live:4}),
+			//new cart({name:'Вова',strong:1,live:4}),
+			//new cart({name:'Ева',strong:2,live:4}),
+			//new cart({name:'Евачка',strong:2,live:4}),
+			//new cart({name:'Владимир',strong:1,live:4}),
+			//new cart({name:'Вова',strong:1,live:4}),
 		   ];
 	}
 	return this.init();
@@ -201,8 +201,11 @@ koloda.prototype.getCarts = function (count){
 	 var carts = this.carts;
 	var return_carts = []; 
 	for (var i = 1; i<=count; i++){
-		var rand = Math.floor(Math.random() * carts.length);
-		 return_carts.push(carts.splice(rand,1)[0]);
+		var length = carts.length;
+		if (length>0){
+			var rand = Math.floor(Math.random() * length);
+		 	return_carts.push(carts.splice(rand,1)[0]);
+		}
 	}
 	
 	 return return_carts;
@@ -292,7 +295,13 @@ cellCart.prototype.viewCanAddCart = function(level){
 	*/
 	return true;
  }
-
+ cellCart.prototype.viewClearCanAddCart = function(level){
+	if (level == undefined || level<1) level = 1;
+	// если level 1 подсвечиваем карту которая будет делать действие 
+	if (level == 1){
+		this.getNode().classList.remove("cell-cart--can-added");
+	}
+ }
  /* --------------------------------------- ГРУППА ЯЧЕЕК -----------------------------------------------*/
  function blockCells(col,row,inverse){
 	 this.col = (col!=undefined && col > 0) ? col : 1;
@@ -347,6 +356,7 @@ cellCart.prototype.viewCanAddCart = function(level){
 	var num = (!this.inverse) ? this.col*(row-1)+(col-1) : this.col*(this.row - row)+(col-1); 
 	if (this.cells[num]==undefined){
 		console.error("Нет такой ячейки");
+		return false;
 	}
 	return this.cells[num];
  };
@@ -385,6 +395,46 @@ cellCart.prototype.viewCanAddCart = function(level){
 	 });
 	 return cells;
 }
+blockCells.prototype.CellRecomposition = function(){
+	var resultCell = [];
+	var tempThis  = this;
+	var findEmptyCellInFront = function(thisCell){
+		var col = thisCell.col;
+		var row = thisCell.row-1;
+		cell = tempThis.getCell(col,row);
+		if (cell != false && cell.cart == false){
+			return cell;
+		}
+		else{
+			return false;
+		}
+	};   
+    //Перераспределим карты вначале в своем столе
+    var cells = this.queryCell({
+			cart:true
+    });
+    cells.forEach(function(item){
+		var oldCell = item;
+		var tempCell = item;
+		var newCell = false;
+		while (tempCell = findEmptyCellInFront(tempCell)){
+			console.log(tempCell);
+			newCell = tempCell;
+		}
+		if (newCell){
+			tempThis.moveCartFromCellToCell(oldCell,newCell);
+		}
+		//console.log(item.cart.node);
+    });
+}
+blockCells.prototype.moveCartFromCellToCell = function(oldCell,newCell){
+	var cart = oldCell.cart;
+	newCell.cart = cart;
+	oldCell.cart = false;
+	oldCell.updateNode();
+	newCell.updateNode();
+
+}
  /*--------------- КАРТА ИГРОКА ------------------------------------*/
  function playerProfile(obj){
 	if (obj == undefined){
@@ -421,12 +471,13 @@ playerProfile.prototype.setNode = function(){
  	this.items_col = (obj.items_col!=undefined) ? obj.items_col : 3;
  	this.node = false;
 	this.inverse = (obj.inverse!=undefined) ? obj.inverse : false; // Перевернем или нет
-
+	this.isNPS = inverse = (obj.nps!=undefined) ? obj.nps : false; // Перевернем или нет 
  	this.arena = new blockCells(this.arena_col,this.arena_row,this.inverse);
  	this.spells = new blockCells(this.spells_col);
 	this.items = new blockCells(this.items_col);
 	this.player = new playerProfile();
 	this.koloda = new koloda();
+	this.bEndStroke = false; // Сделан ход
  }
 
 // Получить карты из колоды
@@ -434,9 +485,15 @@ halfTable.prototype.getCartsFromColoda = function(count){
 if (count==undefined || isNaN(count) || count<=0) count = 1; 
 	return this.koloda.getCarts(count);
 }
-halfTable.prototype.addCartFromColoda = function(){
-	var carts = this.getCartsFromColoda();
-	return carts[0];
+
+halfTable.prototype.getOneCartFromColoda = function(){
+	var carts = this.getCartsFromColoda(); // Получить одну карту из к
+	if (carts.length>0){
+		return carts[0];
+	}
+	else{
+		return false; // В колоде больше нет карт
+	}
 }
 // Заполним первую строку картами
 halfTable.prototype.fillFirstRow = function(){
@@ -450,9 +507,11 @@ halfTable.prototype.fillFirstRow = function(){
 	}
 	// Продолдим потом ....
 }
+
+
  function log(){
 	 this.add = function(mess){
-		console.log(mess);
+		console.log("Лог: "+mess);
 	 }
  }
  var log = new log();

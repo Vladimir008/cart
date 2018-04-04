@@ -19,7 +19,7 @@
             spells_col:this.spells_col,
             items_col:this.items_col,
         }
-       this.backHalfTable = new halfTable(Object.assign({inverse:true}, settings));
+       this.backHalfTable = new halfTable(Object.assign({inverse:true,nps:true}, settings));
        this.frontHalfTable = new halfTable(settings);
        this.selectedHalfTable = this.frontHalfTable; // Выбранный стол (стол, который сейчас ходит)
        this.nonSelectedHalfTable = this.backHalfTable; // Невыбранный стол (стол, на которого ходят)
@@ -40,12 +40,6 @@
        return true;
     };
     
-   /**
-    * ЗАГЛУШКА Добавляет новую карту на стол
-    */
-   /*this.addCartToHalfTable = function (halfTable){
-       this.getCartFromColoda(halfTable);
-   }*/
 
    /**
     *   Определяет и отдает карты для выбора
@@ -58,30 +52,40 @@
         // Перед началом взаимодействия
         // Очистить события и выдения всех карт, кроме 
         this.clearCanSelectedCart(false);
+        this.clearCellCanAddedCart(false);
+
 
 
        // Проверим что выведена карта
        if (this.addedCart == false || this.addedCart == undefined){
-            this.addedCart = this.selectedHalfTable.addCartFromColoda();
-            var canCellForAdd = this.queryCell({
-                halfTable:{arena:{cart:false}},
-                oppHalfTable:{}
-            });
-
-            console.log(this.addedCart);
-            canCellForAdd.forEach(function(item){
-                item.viewCanAddCart(1);
-                item.getNode().onclick = function(){
-                    
-                    item.addCart(Battle.addedCart);
-                    Battle.processRound();
+            this.addedCart = this.selectedHalfTable.getOneCartFromColoda();
+            if (this.addedCart==false){ // Если карт в колоде больше не осталось
+                log.add("В колоде закончились карты");
+                this.addedCart=true;
+            }
+            else{
+                var canCellForAdd = this.queryCell({
+                    halfTable:{arena:{cart:false}},
+                    oppHalfTable:{}
+                });
+                canCellForAdd.forEach(function(item){
+                    item.viewCanAddCart(1);
+                    item.getNode().onclick = function(){
+                        Battle.clearCellCanAddedCart(true);
+                        item.addCart(Battle.addedCart);
+                        Battle.processRound();
+                    }
+                });
+                if (this.selectedHalfTable.isNPS){
+                    var length = canCellForAdd.length;
+                    var rand = Math.floor(Math.random() * length);
+                    canCellForAdd[rand].getNode().onclick();
                 }
-            });
-            return true;
+                return true;
+            }
        } 
        // Если карта для хода ещё не выбрана
        if (this.selectedCart == false || this.selectedCart == undefined){
-
             var canSelectedCarts = this.queryCartFromCells(
                     this.queryCell({
                         halfTable:{arena:{distanse:1}},
@@ -97,8 +101,13 @@
                    Battle.processRound();
                };
            });
+           if (this.selectedHalfTable.isNPS){
+                var length = canSelectedCarts.length;
+                var rand = Math.floor(Math.random() * length);
+                canSelectedCarts[rand].getNode().onclick();
+            }
        }
-       // Проверяем выбрана ли вторая карта
+       // Ставим событие для второй карты, на которую будут ходить
        else{
             var rowSelectedCart = this.selectedCart.getRow();
             var distanse = this.selectedCart.distanse_attack();
@@ -114,10 +123,15 @@
                     log.add("Сработал onclick - выбрана карта на которую ходят");  
                     Battle.clearCanSelectedCart(true);
                     Battle.interactionCarts(item);
+                    
                 }
             });
+            if (this.selectedHalfTable.isNPS){
+                var length = canSelectedCarts.length;
+                var rand = Math.floor(Math.random() * length);
+                canSelectedCarts[rand].getNode().onclick();
+            }
        }
-
        return true;
    }
    this.interactionCarts = function(cart){
@@ -128,11 +142,12 @@
         setTimeout(function(){
             var delayTime = cart.counterattackCart(varThis.selectedCart);
             setTimeout(function(){
+                varThis.selectedHalfTable.bEndStroke = true;
                 varThis.selectedCart = false;
                 varThis.processRound();
             },delayTime);
         },delayTime);
-             
+        
    }
       /**
         * Очистка представления выбранных карт из ячеек
@@ -150,16 +165,26 @@
             }
         });
     }
-    this.clearCellCanAddedCart = function(full){
-        var allCells = this.queryCell();
-        
+    this.clearCellCanAddedCart = function(){
+        // Проверим что выведена карта
+       if (this.addedCart != false && this.addedCart != undefined){
+            var allCells = this.queryCell();
+            allCells.forEach(function(item){
+                item.viewClearCanAddCart();
+                item.getNode().onclick = null;
+            });
+            return true;
+        }
+        return false;
     }
+
        /**
         * Очистка умерших карт из ячеек
         * @param {boolean} full - убирать ли выбранную карту?
         * @return {void} выбранные ячейки
         */
         this.clearDeadCart = function(){
+            var bNeedRecompositionCart = false;
             var cells = this.queryCell({
                     halfTable:{arena:{deadCart:true}},
                     oppHalfTable:{arena:{deadCart:true}}
@@ -167,7 +192,12 @@
             
             cells.forEach(function(item){
                 item.clearDeadCart();
+                bNeedRecompositionCart = true;
             });
+            if (bNeedRecompositionCart){
+                   // Перераспределение карт
+                this.recompositionCart();
+            }
            // console.log("Убрать карты",carts);
             /*
             */
@@ -222,23 +252,6 @@
             return cells;
        };
    
-    // Получить список для выбора карт
-    this.gettCellsForSelected = function(halfTable){}
-    
-
-    
-   
-   // Конец раунда
-   this.EndProcessRound = function (){
-
-   }
-   
-   // Конец Раунда
-   this.EndProcessRoundForHalfTable = function (){
-       
-   }
-
-
     //Получить узел сцены
     this.getSceneNode = function(){
        var Node = document.createElement('div');
@@ -296,29 +309,63 @@
  * @return {boolean} Отметка о корректном выполении функции
  */
 BattleScene.prototype.processRound = function (){
+    
     // Заполняем первые ряды
     if (this.round == 1 && this.isFillTable == false){ 
         this.fillCartTable();
         this.isFillTable = true;
     }
-   
-    //else{
+    // Перераспределение карт
+        this.recompositionCart();
+    // Если выбранный стол сходил - меняем ход
+    if (this.selectedHalfTable.bEndStroke==true){  
+        this.changeSelectedHalfTable();
+    }
+    // Если новый выбранный стол сходил - заканчиваем ход
+    if (this.selectedHalfTable.bEndStroke==true){
+        this.endRound();
+    }
+    // Выполняем взаимодействие
     this.addEventsForInteractionCarts();
      
-
     // Конец раунда - очистка умерших карт
     this.clearDeadCart(); // Вопрос стоит ли делать проверку вначале, или в конце???
 
+
     return true;
 };
-BattleScene.prototype.animator = function(funct,item,time){
-
-};
-BattleScene.prototype.animation = {
-    attackCart : {
-        time: 500,
-        func: function(time){
-
-        }
+BattleScene.prototype.changeSelectedHalfTable = function (){
+    log.add("Стол сходил. Смена стола");
+    if (this.selectedHalfTable.inverse == true){
+        this.selectedHalfTable = this.frontHalfTable; // Выбранный стол - передний
+        this.nonSelectedHalfTable = this.backHalfTable; // Не выбранный стол - задний
     }
+    else{
+        this.selectedHalfTable = this.backHalfTable; // Выбранный стол - передний
+        this.nonSelectedHalfTable = this.frontHalfTable; // Не выбранный стол - задний
+    }
+    this.addedCart = false;
+    this.selectedCart = false;
+    //console.log(this.selectedHalfTable);
+    
+}
+BattleScene.prototype.endRound = function (){
+    log.add("Конец хода"+this.round);
+    this.addedCart = false;
+    this.selectedCart = false;
+    this.selectedHalfTable.bEndStroke = false;
+    this.nonSelectedHalfTable.bEndStroke = false;
+    this.round++;
+    log.add("Начало хода "+this.round)
+}
+
+/**
+ * Перераспределение карт, 
+ * т.е. если перед картой есть свободные ячейки, то карта сдивенется вперед на них
+ * @return {boolean} Отметка о корректном выполении функции
+ */
+BattleScene.prototype.recompositionCart = function(){
+    this.selectedHalfTable.arena.CellRecomposition();
+    this.nonSelectedHalfTable.arena.CellRecomposition();
+    //console.log(this);
 }
